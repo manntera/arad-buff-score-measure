@@ -1,11 +1,12 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"os"
 
-	vision "cloud.google.com/go/vision/apiv1"
 	"github.com/labstack/echo"
+	CalculateBuffScoreFromImageUsecase "manntera.com/calculate-score-api/pkg/Usecase/CalculateBuffScoreFromImageUsecase"
 )
 
 func main() {
@@ -18,7 +19,6 @@ func main() {
 
 	e.Logger.Fatal(e.Start(":" + port))
 }
-
 func calculateScore(c echo.Context) error {
 	form, formErr := c.MultipartForm()
 	if formErr != nil {
@@ -34,16 +34,7 @@ func calculateScore(c echo.Context) error {
 		})
 	}
 
-	client, visionErr := vision.NewImageAnnotatorClient(c.Request().Context())
-	if visionErr != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "failed to create vision client",
-		})
-	}
-	defer client.Close()
-
-	var results []map[string]interface{}
-
+	var images []os.File
 	for _, file := range files {
 		src, srcErr := file.Open()
 		if srcErr != nil {
@@ -53,33 +44,40 @@ func calculateScore(c echo.Context) error {
 		}
 		defer src.Close()
 
-		image, imageErr := vision.NewImageFromReader(src)
-		if imageErr != nil {
+		tempFile, tempErr := os.CreateTemp("", "image-*.jpg")
+		if tempErr != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error": "failed to create image from reader",
+				"error": "failed to create temporary file",
+			})
+		}
+		defer tempFile.Close()
+
+		_, copyErr := io.Copy(tempFile, src)
+		if copyErr != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"error": "failed to copy image data",
 			})
 		}
 
-		annotations, detectErr := client.DetectTexts(c.Request().Context(), image, nil, 10)
-		if detectErr != nil {
+		// Seek to the beginning of the temporary file
+		_, seekErr := tempFile.Seek(0, 0)
+		if seekErr != nil {
 			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error": "failed to detect text",
+				"error": "failed to seek temporary file",
 			})
 		}
 
-		var texts []string
-		for _, annotation := range annotations {
-			texts = append(texts, annotation.Description)
-		}
+		images = append(images, *tempFile)
+	}
 
-		result := map[string]interface{}{
-			"filename": file.Filename,
-			"texts":    texts,
-		}
-		results = append(results, result)
+	score, err := CalculateBuffScoreFromImageUsecase.CalculateBuffScoreFromImage(c.Request().Context(), images)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error": err.Error(),
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{
-		"results": results,
+		"score": score,
 	})
 }

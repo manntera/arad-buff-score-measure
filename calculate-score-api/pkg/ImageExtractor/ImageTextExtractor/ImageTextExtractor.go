@@ -2,6 +2,7 @@ package Imagetextextractor
 
 import (
 	"context"
+	"log"
 	"os"
 
 	vision "cloud.google.com/go/vision/apiv1"
@@ -12,9 +13,9 @@ func ExtractTextFromImage(ctx context.Context, file *os.File) (string, error) {
 	if imageErr != nil {
 		return "", imageErr
 	}
-
 	client, visionErr := vision.NewImageAnnotatorClient(ctx)
 	if visionErr != nil {
+		log.Println(visionErr.Error())
 		return "", visionErr
 	}
 	defer client.Close()

@@ -13,11 +13,9 @@ func ExtractBuffFromImage(ctx context.Context, file *os.File) ([]BuffSkillReader
 	if err != nil {
 		return nil, err
 	}
-
 	buffSkillParams, err := BuffSkillReader.GetBuffSkillParams(text)
 	if err != nil {
 		return nil, err
 	}
-
 	return buffSkillParams, nil
 }
