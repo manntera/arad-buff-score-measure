@@ -7,7 +7,6 @@ import (
 
 	vision "cloud.google.com/go/vision/apiv1"
 	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
 )
 
 func main() {
@@ -16,12 +15,12 @@ func main() {
 		port = "8080"
 	}
 	e := echo.New()
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins: []string{
-			"http://localhost:3000",
-		},
-		AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
-	}))
+	// e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+	// 	AllowOrigins: []string{
+	// 		"http://localhost:3000",
+	// 	},
+	// 	AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
+	// }))
 	e.POST("/calculate-score", calculateScore)
 
 	e.Logger.Fatal(e.Start(":" + port))
