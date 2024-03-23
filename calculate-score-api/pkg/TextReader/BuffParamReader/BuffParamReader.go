@@ -9,12 +9,7 @@ import (
 	"manntera.com/calculate-score-api/pkg/Database"
 )
 
-type BuffParam struct {
-	ParamId    int
-	ParamValue float64
-}
-
-func GetBuffParams(text string, skill string) ([]BuffParam, error) {
+func GetBuffParams(text string, skill string) ([]Database.BuffParam, error) {
 	skillPattern := regexp.MustCompile(`(?i)` + skill)
 
 	var skillIndex int = -1
@@ -30,7 +25,7 @@ func GetBuffParams(text string, skill string) ([]BuffParam, error) {
 		return nil, fmt.Errorf("スキル名 '%s' が見つかりませんでした", skill)
 	}
 
-	var buffParams []BuffParam
+	var buffParams []Database.BuffParam
 	for _, line := range lines[skillIndex+1:] {
 		line = strings.TrimSpace(line)
 		for _, param := range Database.Params {
@@ -39,7 +34,7 @@ func GetBuffParams(text string, skill string) ([]BuffParam, error) {
 				pattern := regexp.MustCompile(`(?i)` + paramName + `.*?([\+\-]?\d+(?:\.\d+)?)`)
 				if match := pattern.FindStringSubmatch(line); len(match) > 1 {
 					value, _ := strconv.ParseFloat(match[1], 64)
-					buffParam := BuffParam{
+					buffParam := Database.BuffParam{
 						ParamId:    param.ID,
 						ParamValue: value,
 					}

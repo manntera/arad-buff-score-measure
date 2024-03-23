@@ -4,12 +4,12 @@ import (
 	"context"
 	"os"
 
+	"manntera.com/calculate-score-api/pkg/Database"
 	ImageToBuffExtractor "manntera.com/calculate-score-api/pkg/ImageExtractor/ImageToBuffExtractor"
-	BuffSkillReader "manntera.com/calculate-score-api/pkg/TextReader/BuffSkillReader"
 )
 
-func AnalyzeBuffSkillsFromImages(ctx context.Context, files []os.File) ([]BuffSkillReader.BuffSkillParam, error) {
-	var buffSkillParams []BuffSkillReader.BuffSkillParam
+func AnalyzeBuffSkillsFromImages(ctx context.Context, files []os.File) ([]Database.BuffSkillParam, error) {
+	var buffSkillParams []Database.BuffSkillParam
 	for _, file := range files {
 		buffSkillParamsFromImage, err := ImageToBuffExtractor.ExtractBuffFromImage(ctx, &file)
 		if err != nil {

@@ -5,20 +5,15 @@ import (
 	"manntera.com/calculate-score-api/pkg/TextReader/BuffParamReader"
 )
 
-type BuffSkillParam struct {
-	SkillId    int
-	BuffParams []BuffParamReader.BuffParam
-}
-
-func GetBuffSkillParams(text string) ([]BuffSkillParam, error) {
-	var buffSkillParams []BuffSkillParam
+func GetBuffSkillParams(text string) ([]Database.BuffSkillParam, error) {
+	var buffSkillParams []Database.BuffSkillParam
 	for _, skill := range Database.Skills {
 		buffParams, err := BuffParamReader.GetBuffParams(text, skill.Name)
 		if err != nil {
 			continue
 		}
 
-		uniqueBuffParams := make([]BuffParamReader.BuffParam, 0)
+		uniqueBuffParams := make([]Database.BuffParam, 0)
 		paramNames := make(map[int]bool)
 		for _, param := range buffParams {
 			if !paramNames[param.ParamId] {
@@ -27,7 +22,7 @@ func GetBuffSkillParams(text string) ([]BuffSkillParam, error) {
 			}
 		}
 
-		buffSkillParam := BuffSkillParam{
+		buffSkillParam := Database.BuffSkillParam{
 			SkillId:    skill.ID,
 			BuffParams: uniqueBuffParams,
 		}
