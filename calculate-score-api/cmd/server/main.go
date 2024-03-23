@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -15,27 +14,25 @@ func main() {
 		port = "8080"
 	}
 	e := echo.New()
-	// e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-	// 	AllowOrigins: []string{
-	// 		"http://localhost:3000",
-	// 	},
-	// 	AllowMethods: []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete},
-	// }))
 	e.POST("/calculate-score", calculateScore)
 
 	e.Logger.Fatal(e.Start(":" + port))
 }
 
 func calculateScore(c echo.Context) error {
-	log.Default().Println("run calculate score")
-	file, fileErr := c.FormFile("image")
-
-	if fileErr != nil {
+	form, formErr := c.MultipartForm()
+	if formErr != nil {
 		return c.JSON(http.StatusBadRequest, map[string]interface{}{
-			"error": "image is required",
+			"error": "failed to parse multipart form",
 		})
 	}
-	log.Default().Println("file:", file.Filename)
+
+	files := form.File["images"]
+	if len(files) == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]interface{}{
+			"error": "images are required",
+		})
+	}
 
 	client, visionErr := vision.NewImageAnnotatorClient(c.Request().Context())
 	if visionErr != nil {
@@ -43,46 +40,46 @@ func calculateScore(c echo.Context) error {
 			"error": "failed to create vision client",
 		})
 	}
-	log.Default().Println("create client")
-
 	defer client.Close()
 
-	src, srcErr := file.Open()
+	var results []map[string]interface{}
 
-	if srcErr != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "failed to open image",
-		})
+	for _, file := range files {
+		src, srcErr := file.Open()
+		if srcErr != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"error": "failed to open image",
+			})
+		}
+		defer src.Close()
+
+		image, imageErr := vision.NewImageFromReader(src)
+		if imageErr != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"error": "failed to create image from reader",
+			})
+		}
+
+		annotations, detectErr := client.DetectTexts(c.Request().Context(), image, nil, 10)
+		if detectErr != nil {
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"error": "failed to detect text",
+			})
+		}
+
+		var texts []string
+		for _, annotation := range annotations {
+			texts = append(texts, annotation.Description)
+		}
+
+		result := map[string]interface{}{
+			"filename": file.Filename,
+			"texts":    texts,
+		}
+		results = append(results, result)
 	}
-	log.Default().Println("create src:")
-	defer src.Close()
 
-	image, imageErr := vision.NewImageFromReader(src)
-
-	if imageErr != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "failed to create image from reader",
-		})
-	}
-	log.Default().Println("create image")
-
-	annotations, detectErr := client.DetectTexts(c.Request().Context(), image, nil, 10)
-
-	if detectErr != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "failed to detect text",
-		})
-	}
-	log.Default().Println("create annotations")
-
-	if len(annotations) == 0 {
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"error": "no text found",
-		})
-	} else {
-
-		return c.JSON(http.StatusOK, map[string]interface{}{
-			"Text": annotations[0].Description,
-		})
-	}
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"results": results,
+	})
 }
