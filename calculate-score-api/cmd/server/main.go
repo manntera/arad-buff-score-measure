@@ -28,7 +28,6 @@ func main() {
 }
 
 func calculateScore(c echo.Context) error {
-
 	log.Default().Println("run calculate score")
 	file, fileErr := c.FormFile("image")
 
@@ -37,14 +36,15 @@ func calculateScore(c echo.Context) error {
 			"error": "image is required",
 		})
 	}
+	log.Default().Println("file:", file.Filename)
 
 	client, visionErr := vision.NewImageAnnotatorClient(c.Request().Context())
-
 	if visionErr != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 			"error": "failed to create vision client",
 		})
 	}
+	log.Default().Println("create client")
 
 	defer client.Close()
 
@@ -55,7 +55,7 @@ func calculateScore(c echo.Context) error {
 			"error": "failed to open image",
 		})
 	}
-
+	log.Default().Println("create src:")
 	defer src.Close()
 
 	image, imageErr := vision.NewImageFromReader(src)
@@ -65,6 +65,7 @@ func calculateScore(c echo.Context) error {
 			"error": "failed to create image from reader",
 		})
 	}
+	log.Default().Println("create image")
 
 	annotations, detectErr := client.DetectTexts(c.Request().Context(), image, nil, 10)
 
@@ -73,6 +74,7 @@ func calculateScore(c echo.Context) error {
 			"error": "failed to detect text",
 		})
 	}
+	log.Default().Println("create annotations")
 
 	if len(annotations) == 0 {
 		return c.JSON(http.StatusOK, map[string]interface{}{
