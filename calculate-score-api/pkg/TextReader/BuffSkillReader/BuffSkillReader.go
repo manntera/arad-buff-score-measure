@@ -1,39 +1,34 @@
 package BuffSkillReader
 
-import "manntera.com/calculate-score-api/pkg/BuffParamReader"
+import (
+	"manntera.com/calculate-score-api/pkg/Database"
+	"manntera.com/calculate-score-api/pkg/TextReader/BuffParamReader"
+)
 
 type BuffSkillParam struct {
-	SkillName  string
+	SkillId    int
 	BuffParams []BuffParamReader.BuffParam
-}
-
-var skillNames = []string{
-	"ラブリーテンポ",
-	"有名税",
-	"特別な物語",
-	"アドレナリン",
 }
 
 func GetBuffSkillParams(text string) ([]BuffSkillParam, error) {
 	var buffSkillParams []BuffSkillParam
-	for _, skillName := range skillNames {
-		buffParams, err := BuffParamReader.GetBuffParams(text, skillName)
+	for _, skill := range Database.Skills {
+		buffParams, err := BuffParamReader.GetBuffParams(text, skill.Name)
 		if err != nil {
 			continue
 		}
 
-		// BuffParamsから重複を排除
 		uniqueBuffParams := make([]BuffParamReader.BuffParam, 0)
-		paramNames := make(map[string]bool)
+		paramNames := make(map[int]bool)
 		for _, param := range buffParams {
-			if !paramNames[param.ParamName] {
-				paramNames[param.ParamName] = true
+			if !paramNames[param.ParamId] {
+				paramNames[param.ParamId] = true
 				uniqueBuffParams = append(uniqueBuffParams, param)
 			}
 		}
 
 		buffSkillParam := BuffSkillParam{
-			SkillName:  skillName,
+			SkillId:    skill.ID,
 			BuffParams: uniqueBuffParams,
 		}
 		buffSkillParams = append(buffSkillParams, buffSkillParam)

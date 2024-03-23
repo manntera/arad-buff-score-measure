@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	Imagetextextractor "manntera.com/calculate-score-api/pkg/ImageTextExtractor"
+	Imagetextextractor "manntera.com/calculate-score-api/pkg/ImageExtractor/ImageTextExtractor"
 )
 
 func TestGetBuffSkillParams(t *testing.T) {
@@ -15,7 +15,7 @@ func TestGetBuffSkillParams(t *testing.T) {
 		t.Errorf("Error getting current directory: %v", err)
 		return
 	}
-	testImagePath := dir + "/../../testdata/test2.jpg"
+	testImagePath := dir + "/../../../testdata/test4.jpg"
 
 	file, err := os.Open(testImagePath)
 	if err != nil {
