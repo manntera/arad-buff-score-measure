@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -27,6 +28,8 @@ func main() {
 }
 
 func calculateScore(c echo.Context) error {
+
+	log.Default().Println("run calculate score")
 	file, fileErr := c.FormFile("image")
 
 	if fileErr != nil {
