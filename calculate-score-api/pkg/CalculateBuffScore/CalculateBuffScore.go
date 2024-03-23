@@ -1,4 +1,4 @@
-package CalculateBuffScoreUsecase
+package CalculateBuffScore
 
 import (
 	"manntera.com/calculate-score-api/pkg/Database"
@@ -25,14 +25,8 @@ func CalculateBuffScore(buffSkillParams []BuffSkillReader.BuffSkillParam) (int, 
 
 			switch buffParam.ParamId {
 			case 1:
-				// log.Println("SkillId:", buffSkillParam.SkillId)
-				// log.Println("ParamId:", buffParam.ParamId)
-				// log.Println("ParamValue:", buffParam.ParamValue)
 				staticParam += buffParam.ParamValue
 			case 2:
-				// log.Println("SkillId:", buffSkillParam.SkillId)
-				// log.Println("ParamId:", buffParam.ParamId)
-				// log.Println("ParamValue:", buffParam.ParamValue)
 				ratioParam += buffParam.ParamValue
 			}
 		}

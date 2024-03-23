@@ -1,4 +1,4 @@
-package CalculateBuffScoreUsecase
+package CalculateBuffScore
 
 import (
 	"context"
