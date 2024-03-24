@@ -35,6 +35,7 @@ func TestExtractTextFromImage(t *testing.T) {
 			if text == "" {
 				t.Errorf("Expected text to be non-empty")
 			}
+			log.Printf("【Extracted text】 %s", text)
 		}
 	}
 }
