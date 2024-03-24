@@ -1,4 +1,4 @@
-package Imagetextextractor
+package ImageTextExtractor
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	vision "cloud.google.com/go/vision/apiv1"
 )
 
+// 入力された画像から画像に記載されているテキストを抽出して出力します。
 func ExtractTextFromImage(ctx context.Context, file *os.File) (string, error) {
 	image, imageErr := vision.NewImageFromReader(file)
 	if imageErr != nil {

@@ -4,21 +4,16 @@ import (
 	"manntera.com/calculate-score-api/pkg/Database"
 )
 
+// バフスキルのパラメーターを総合して、バフスキルのスコアを計算します。
 func CalculateBuffScore(buffSkillParams []Database.BuffSkillParam) (int, error) {
-	staticParam := 0.0
-	ratioParam := 0.0
+	baseParam := 0.0
+	boostParam := 0.0
 	for _, buffSkillParam := range buffSkillParams {
-		for _, buffParam := range buffSkillParam.BuffParams {
-			switch buffParam.ParamId {
-			case 1:
-				staticParam += buffParam.ParamValue
-			case 2:
-				ratioParam += buffParam.ParamValue
-			}
-		}
+		baseParam += float64(buffSkillParam.BaseParam)
+		boostParam += float64(buffSkillParam.BoostParam)
 	}
 
-	staticParam = (staticParam+15000)/250 + 1
-	ratioParam = (ratioParam + 2650) / 10
-	return int(staticParam * ratioParam), nil
+	baseParam = (baseParam+15000.0)/250.0 + 1.0
+	boostParam = (boostParam + 2650.0) / 10.0
+	return int(baseParam * boostParam), nil
 }

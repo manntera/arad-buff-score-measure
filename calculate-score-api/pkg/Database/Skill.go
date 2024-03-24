@@ -1,5 +1,7 @@
 package Database
 
+import "fmt"
+
 // スキルの情報を保持する構造体
 type Skill struct {
 	ID           int    // 一意に識別されるID
@@ -33,21 +35,21 @@ var Skills = []Skill{
 }
 
 // IDからスキル情報を取得する
-func GetSkillFromId(id int) *Skill {
+func GetSkillFromId(id int) (Skill, error) {
 	for _, skill := range Skills {
 		if skill.ID == id {
-			return &skill
+			return skill, nil
 		}
 	}
-	return nil
+	return Skill{}, fmt.Errorf("スキルが見つかりませんでした")
 }
 
 // スキル名からスキル情報を取得する
-func GetSkillFromName(name string) *Skill {
+func GetSkillFromName(name string) (Skill, error) {
 	for _, skill := range Skills {
 		if skill.Name == name {
-			return &skill
+			return skill, nil
 		}
 	}
-	return nil
+	return Skill{}, fmt.Errorf("スキルが見つかりませんでした")
 }
