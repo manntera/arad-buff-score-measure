@@ -5,10 +5,10 @@ type ImageData struct {
 	SkillId       int
 }
 type TestData struct {
-	JobName          string
-	ImageDataList    []ImageData
-	SuccessParamList []BuffSkillParam
-	Score            int
+	JobName              string
+	ImageDataList        []ImageData
+	ReferenceSkillParams []BuffSkillParam
+	Score                int
 }
 
 var TestDataList = []TestData{
@@ -36,59 +36,31 @@ var TestDataList = []TestData{
 				SkillId:       2,
 			},
 		},
-		SuccessParamList: []BuffSkillParam{
+		ReferenceSkillParams: []BuffSkillParam{
 			{
-				SkillId: 1,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 45259,
-					},
-					{
-						ParamId:    2,
-						ParamValue: 7871,
-					},
-				},
+				SkillId:    1,
+				BaseParam:  45259,
+				BoostParam: 7871,
 			},
 			{
-				SkillId: 2,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 111539,
-					},
-				},
+				SkillId:    2,
+				BaseParam:  111539,
+				BoostParam: 0,
 			},
 			{
-				SkillId: 3,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 599,
-					},
-				},
+				SkillId:    3,
+				BaseParam:  599,
+				BoostParam: 0,
 			},
 			{
-				SkillId: 4,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 4525,
-					},
-					{
-						ParamId:    2,
-						ParamValue: 787,
-					},
-				},
+				SkillId:    4,
+				BaseParam:  4525,
+				BoostParam: 787,
 			},
 			{
-				SkillId: 5,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 84009,
-					},
-				},
+				SkillId:    5,
+				BaseParam:  84009,
+				BoostParam: 0,
 			},
 		},
 		Score: 1181373,
@@ -117,59 +89,31 @@ var TestDataList = []TestData{
 				SkillId:       10,
 			},
 		},
-		SuccessParamList: []BuffSkillParam{
+		ReferenceSkillParams: []BuffSkillParam{
 			{
-				SkillId: 8,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 532,
-					},
-				},
+				SkillId:    8,
+				BaseParam:  532,
+				BoostParam: 0,
 			},
 			{
-				SkillId: 6,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 19846,
-					},
-					{
-						ParamId:    2,
-						ParamValue: 3823,
-					},
-				},
+				SkillId:    6,
+				BaseParam:  19846,
+				BoostParam: 3823,
 			},
 			{
-				SkillId: 7,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 40710,
-					},
-				},
+				SkillId:    7,
+				BaseParam:  40710,
+				BoostParam: 0,
 			},
 			{
-				SkillId: 9,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 4961,
-					},
-					{
-						ParamId:    2,
-						ParamValue: 955,
-					},
-				},
+				SkillId:    9,
+				BaseParam:  4961,
+				BoostParam: 955,
 			},
 			{
-				SkillId: 10,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 10991,
-					},
-				},
+				SkillId:    10,
+				BaseParam:  10991,
+				BoostParam: 0,
 			},
 		},
 		Score: 274212,
@@ -198,64 +142,101 @@ var TestDataList = []TestData{
 				SkillId:       21,
 			},
 		},
-		SuccessParamList: []BuffSkillParam{
+		ReferenceSkillParams: []BuffSkillParam{
 			{
-				SkillId: 19,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 397,
-					},
-				},
+				SkillId:   19,
+				BaseParam: 397,
 			},
 			{
-				SkillId: 17,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 45930,
-					},
-					{
-						ParamId:    2,
-						ParamValue: 8239,
-					},
-				},
+				SkillId:    17,
+				BaseParam:  45930,
+				BoostParam: 8239,
 			},
 			{
-				SkillId: 18,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 84231,
-					},
-				},
+				SkillId:    18,
+				BaseParam:  84231,
+				BoostParam: 0,
 			},
 			{
-				SkillId: 20,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 53,
-					},
-				},
+				SkillId:    20,
+				BaseParam:  0,
+				BoostParam: 53,
 			},
 			{
-				SkillId: 21,
-				BuffParams: []BuffParam{
-					{
-						ParamId:    1,
-						ParamValue: 24426,
-					},
-				},
+				SkillId:    21,
+				BaseParam:  24426,
+				BoostParam: 0,
 			},
 		},
 		Score: 745080,
+	},
+	{
+		JobName: "wkuruse",
+		ImageDataList: []ImageData{
+			{
+				ImageFileName: "test1.png",
+				SkillId:       13,
+			},
+			{
+				ImageFileName: "test2.png",
+				SkillId:       11,
+			},
+			{
+				ImageFileName: "test3.png",
+				SkillId:       12,
+			},
+			{
+				ImageFileName: "test4.png",
+				SkillId:       14,
+			},
+			{
+				ImageFileName: "test5.png",
+				SkillId:       15,
+			},
+			{
+				ImageFileName: "test6.png",
+				SkillId:       16,
+			},
+		},
+		ReferenceSkillParams: []BuffSkillParam{
+			{
+				SkillId:    13,
+				BaseParam:  509,
+				BoostParam: 0,
+			},
+			{
+				SkillId:    11,
+				BaseParam:  34904,
+				BoostParam: 6384,
+			},
+			{
+				SkillId:    12,
+				BaseParam:  52681,
+				BoostParam: 0,
+			},
+			{
+				SkillId:    14,
+				BaseParam:  5235,
+				BoostParam: 957,
+			},
+			{
+				SkillId:    15,
+				BaseParam:  14223,
+				BoostParam: 0,
+			},
+			{
+				SkillId:    16,
+				BaseParam:  288,
+				BoostParam: 0,
+			},
+		},
+		Score: 491916,
 	},
 }
 
 func GetSuccessParamFromSkillId(skillId int) *BuffSkillParam {
 	for _, testData := range TestDataList {
-		for _, successParam := range testData.SuccessParamList {
+		for _, successParam := range testData.ReferenceSkillParams {
 			if successParam.SkillId == skillId {
 				return &successParam
 			}
