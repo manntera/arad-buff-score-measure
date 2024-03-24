@@ -9,14 +9,14 @@ import (
 	"manntera.com/calculate-score-api/pkg/TextReader/BuffSkillReader"
 )
 
-func ExtractBuffFromImage(ctx context.Context, file *os.File) ([]Database.BuffSkillParam, error) {
+func ExtractBuffFromImage(ctx context.Context, file *os.File) (*Database.BuffSkillParam, error) {
 	text, err := Imagetextextractor.ExtractTextFromImage(ctx, file)
 	if err != nil {
 		return nil, err
 	}
-	buffSkillParams, err := BuffSkillReader.GetBuffSkillParams(text)
+	buffSkillParam, err := BuffSkillReader.GetBuffSkillParams(text)
 	if err != nil {
 		return nil, err
 	}
-	return buffSkillParams, nil
+	return &buffSkillParam, nil
 }

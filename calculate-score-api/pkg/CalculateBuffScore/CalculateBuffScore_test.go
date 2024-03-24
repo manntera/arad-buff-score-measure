@@ -5,46 +5,46 @@ import (
 	"os"
 	"testing"
 
+	"manntera.com/calculate-score-api/pkg/Database"
 	"manntera.com/calculate-score-api/pkg/Usecase/AnalyzeBuffSkillsFromImageUsecase"
 )
 
 func TestCalculateBuffScore(t *testing.T) {
 	ctx := context.Background()
-	fileNames := []string{
-		"test1.jpg",
-		"test2.jpg",
-		"test3.jpg",
-		"test4.jpg",
-		"test5.png",
-	}
-	dir, err := os.Getwd()
+
+	rootDir, err := os.Getwd()
 	if err != nil {
-		t.Errorf("Error getting current directory: %v", err)
+		t.Errorf("Error getting working directory: %v", err)
 		return
 	}
-	testDir := dir + "/../../../testdata/"
-	var files []os.File
-	for _, fileName := range fileNames {
-		file, err := os.Open(testDir + fileName)
-		if err != nil {
-			t.Errorf("Error opening test image: %v", err)
-			return
+	rootDir += "/../../testdata/"
+	for _, testData := range Database.TestDataList {
+		imageDir := rootDir + testData.JobName + "/"
+		var files []os.File
+		for _, imageData := range testData.ImageDataList {
+			file, err := os.Open(imageDir + imageData.ImageFileName)
+			if err != nil {
+				t.Errorf("Error opening test image: %v", err)
+				return
+			}
+			defer file.Close()
+			files = append(files, *file)
 		}
-		defer file.Close()
-		files = append(files, *file)
-	}
-	buffSkillParams, err := AnalyzeBuffSkillsFromImageUsecase.AnalyzeBuffSkillsFromImages(ctx, files)
-	if err != nil {
-		t.Errorf("Error: %v", err)
-	}
+		buffSkillParams, err := AnalyzeBuffSkillsFromImageUsecase.AnalyzeBuffSkillsFromImages(ctx, files)
+		if err != nil {
+			t.Errorf("Error: %v", err)
+		}
 
-	score, err := CalculateBuffScore(buffSkillParams)
-	if err != nil {
-		t.Errorf("Error: %v", err)
-	}
+		score, err := CalculateBuffScore(buffSkillParams)
+		if err != nil {
+			t.Errorf("Error: %v", err)
+		}
 
-	if score < 0 {
-		t.Errorf("Expected score to be non-negative")
+		if score != testData.Score {
+			t.Errorf("Expected score %v, got %v", testData.Score, score)
+		}
+		if score == testData.Score {
+			t.Logf("Score is correct")
+		}
 	}
-	t.Log("BuffScore", score)
 }

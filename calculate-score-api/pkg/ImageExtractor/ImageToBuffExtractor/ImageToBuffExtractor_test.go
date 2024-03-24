@@ -2,32 +2,39 @@ package Imagetobuffextractor
 
 import (
 	"context"
+	"log"
 	"os"
 	"testing"
+
+	"manntera.com/calculate-score-api/pkg/Database"
 )
 
 func TestGetSkillParams(t *testing.T) {
 	ctx := context.Background()
+
 	dir, err := os.Getwd()
 	if err != nil {
 		t.Errorf("Error getting current directory: %v", err)
 		return
 	}
-	// testImagePath := dir + "/../../testdata/test5.png"
-	testImagePath := dir + "/../../testdata/test1.jpg"
-	file, err := os.Open(testImagePath)
-	if err != nil {
-		t.Errorf("Error opening test image: %v", err)
-		return
-	}
-	defer file.Close()
+	dir += "/../../../testdata/"
 
-	buffSkillParams, buffSkillParamsErr := ExtractBuffFromImage(ctx, file)
-	if buffSkillParamsErr != nil {
-		t.Errorf("Error: %v", buffSkillParamsErr)
+	for _, TestData := range Database.TestDataList {
+		log.Printf("【Testing job】 %s", TestData.JobName)
+		for _, imageData := range TestData.ImageDataList {
+			log.Printf("【Testing image】 %s", imageData.ImageFileName)
+			file, err := os.Open(dir + TestData.JobName + "/" + imageData.ImageFileName)
+			if err != nil {
+				t.Errorf("Error opening test image: %v", err)
+				return
+			}
+			defer file.Close()
+
+			text, err := ExtractBuffFromImage(ctx, file)
+			if err != nil {
+				t.Errorf("Error: %v", err)
+			}
+			t.Log(text)
+		}
 	}
-	if len(buffSkillParams) == 0 {
-		t.Errorf("Expected buffSkillParams to be non-empty")
-	}
-	t.Log(buffSkillParams)
 }

@@ -30,5 +30,5 @@ func ExtractTextFromImage(ctx context.Context, file *os.File) (string, error) {
 		text += annotation.Description
 	}
 
-	return annotations[0].Description, nil
+	return text, nil
 }

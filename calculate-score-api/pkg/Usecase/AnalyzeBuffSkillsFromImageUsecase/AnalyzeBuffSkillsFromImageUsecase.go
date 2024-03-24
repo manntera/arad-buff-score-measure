@@ -15,7 +15,7 @@ func AnalyzeBuffSkillsFromImages(ctx context.Context, files []os.File) ([]Databa
 		if err != nil {
 			return nil, err
 		}
-		buffSkillParams = append(buffSkillParams, buffSkillParamsFromImage...)
+		buffSkillParams = append(buffSkillParams, *buffSkillParamsFromImage)
 	}
 	return buffSkillParams, nil
 }

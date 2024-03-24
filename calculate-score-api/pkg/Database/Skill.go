@@ -29,3 +29,21 @@ var Skills = []Skill{
 	{ID: 20, Name: "クロスクラッシュ", GenreId: 4},
 	{ID: 21, Name: "最後の審判", GenreId: 5},
 }
+
+func GetSkillFromId(id int) *Skill {
+	for _, skill := range Skills {
+		if skill.ID == id {
+			return &skill
+		}
+	}
+	return nil
+}
+
+func GetSkillFromName(name string) *Skill {
+	for _, skill := range Skills {
+		if skill.Name == name {
+			return &skill
+		}
+	}
+	return nil
+}

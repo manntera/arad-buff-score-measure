@@ -9,9 +9,9 @@ import (
 func TestAnalyzeBuffSkillsFromImages(t *testing.T) {
 	ctx := context.Background()
 	fileNames := []string{
+		"test3.jpg",
 		"test1.jpg",
 		"test2.jpg",
-		"test3.jpg",
 		"test4.jpg",
 		"test5.png",
 	}
@@ -20,7 +20,7 @@ func TestAnalyzeBuffSkillsFromImages(t *testing.T) {
 		t.Errorf("Error getting current directory: %v", err)
 		return
 	}
-	testDir := dir + "/../../../testdata/"
+	testDir := dir + "/../../../testdata/muse/"
 	var files []os.File
 	for _, fileName := range fileNames {
 		file, err := os.Open(testDir + fileName)
