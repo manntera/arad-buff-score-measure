@@ -9,19 +9,6 @@ func CalculateBuffScore(buffSkillParams []Database.BuffSkillParam) (int, error) 
 	ratioParam := 0.0
 	for _, buffSkillParam := range buffSkillParams {
 		for _, buffParam := range buffSkillParam.BuffParams {
-			SkillId := buffSkillParam.SkillId
-
-			SkillGenreId := -1
-			for _, skill := range Database.Skills {
-				if skill.ID == SkillId {
-					SkillGenreId = skill.GenreId
-					break
-				}
-			}
-			if SkillGenreId == -1 {
-				continue
-			}
-
 			switch buffParam.ParamId {
 			case 1:
 				staticParam += buffParam.ParamValue
