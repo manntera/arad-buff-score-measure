@@ -1,9 +1,12 @@
 package Database
 
+// テスト画像に関する情報を保持する構造体
 type ImageData struct {
 	ImageFileName string
 	SkillId       int
 }
+
+// テストデータに関する情報を保持する構造体
 type TestData struct {
 	JobName              string
 	ImageDataList        []ImageData
@@ -11,6 +14,7 @@ type TestData struct {
 	Score                int
 }
 
+// テストデータ
 var TestDataList = []TestData{
 	{
 		JobName: "muse",
@@ -234,21 +238,13 @@ var TestDataList = []TestData{
 	},
 }
 
+// スキルIDからテストデータを取得する
 func GetSuccessParamFromSkillId(skillId int) *BuffSkillParam {
 	for _, testData := range TestDataList {
 		for _, successParam := range testData.ReferenceSkillParams {
 			if successParam.SkillId == skillId {
 				return &successParam
 			}
-		}
-	}
-	return nil
-}
-
-func GetSuccessParamFromparamId(BuffSkillParam BuffSkillParam, paramId int) *BuffParam {
-	for _, successParam := range BuffSkillParam.BuffParams {
-		if successParam.ParamId == paramId {
-			return &successParam
 		}
 	}
 	return nil

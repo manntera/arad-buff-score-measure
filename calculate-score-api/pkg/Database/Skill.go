@@ -1,10 +1,11 @@
 package Database
 
+// スキルの情報を保持する構造体
 type Skill struct {
-	ID           int
-	Name         string
-	IsBasePower  bool
-	IsBoostPower bool
+	ID           int    // 一意に識別されるID
+	Name         string // スキル名
+	IsBasePower  bool   // 力/知能のバフを行うか
+	IsBoostPower bool   // 魔法/物理/独立攻撃力のバフを行うか
 }
 
 var Skills = []Skill{
@@ -31,6 +32,7 @@ var Skills = []Skill{
 	{ID: 21, Name: "最後の審判", IsBasePower: true, IsBoostPower: false},
 }
 
+// IDからスキル情報を取得する
 func GetSkillFromId(id int) *Skill {
 	for _, skill := range Skills {
 		if skill.ID == id {
@@ -40,6 +42,7 @@ func GetSkillFromId(id int) *Skill {
 	return nil
 }
 
+// スキル名からスキル情報を取得する
 func GetSkillFromName(name string) *Skill {
 	for _, skill := range Skills {
 		if skill.Name == name {
