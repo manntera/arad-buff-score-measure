@@ -6,8 +6,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"os"
-
-	"golang.org/x/image/draw"
 )
 
 type ImageType int
@@ -35,16 +33,17 @@ func TrimBuffIconArea(ImageType ImageType, imageFile *os.File) (*os.File, error)
 	bottomY := sourceHeight
 
 	trimmedRect := image.Rect(leftX, topY, rightX, bottomY)
-	trimmedImage := image.NewRGBA(trimmedRect)
-	draw.Draw(trimmedImage, trimmedImage.Bounds(), sourceImage, image.Pt(leftX, topY), draw.Src)
+	trimmedImage := sourceImage.(interface {
+		SubImage(r image.Rectangle) image.Image
+	}).SubImage(trimmedRect)
 
 	tempFile, err := os.CreateTemp("", "trimmed_*.png")
 	if err != nil {
 		return nil, err
 	}
-	defer tempFile.Close()
 
 	err = png.Encode(tempFile, trimmedImage)
+	tempFile.Seek(0, 0)
 	if err != nil {
 		return nil, err
 	}
