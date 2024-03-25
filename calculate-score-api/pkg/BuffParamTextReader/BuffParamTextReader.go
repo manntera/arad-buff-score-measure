@@ -42,8 +42,8 @@ func GetBuffParam(text string) (Database.BuffSkillParam, error) {
 		if strings.Contains(line, "適用") {
 			continue
 		}
-		if strings.Contains(line, "物理攻撃力") {
-			param, err := getNumberFromLine(line, "物理攻撃力")
+		if strings.Contains(line, "攻撃力") {
+			param, err := getNumberFromLine(line, "攻撃力")
 			if err != nil {
 				continue
 			}
@@ -53,8 +53,8 @@ func GetBuffParam(text string) (Database.BuffSkillParam, error) {
 
 			continue
 		}
-		if strings.Contains(line, "魔法攻撃力") {
-			param, err := getNumberFromLine(line, "魔法攻撃力")
+		if strings.Contains(line, "物理") {
+			param, err := getNumberFromLine(line, "物理")
 			if err != nil {
 				continue
 			}
@@ -63,8 +63,18 @@ func GetBuffParam(text string) (Database.BuffSkillParam, error) {
 			}
 			continue
 		}
-		if strings.Contains(line, "独立攻撃力") {
-			param, err := getNumberFromLine(line, "独立攻撃力")
+		if strings.Contains(line, "魔法") {
+			param, err := getNumberFromLine(line, "魔法")
+			if err != nil {
+				continue
+			}
+			if result.BoostParam == 0 {
+				result.BoostParam = param
+			}
+			continue
+		}
+		if strings.Contains(line, "独立") {
+			param, err := getNumberFromLine(line, "独立")
 			if err != nil {
 				continue
 			}
@@ -91,6 +101,15 @@ func GetBuffParam(text string) (Database.BuffSkillParam, error) {
 				continue
 			}
 			if strings.Contains(line, "能力") {
+				continue
+			}
+			if strings.Contains(line, "物理") {
+				continue
+			}
+			if strings.Contains(line, "魔法") {
+				continue
+			}
+			if strings.Contains(line, "独立") {
 				continue
 			}
 			param, err := getNumberFromLine(line, "力")
