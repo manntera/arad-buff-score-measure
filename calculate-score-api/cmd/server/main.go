@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
 
@@ -54,14 +53,47 @@ func calculateScore(c echo.Context) error {
 		})
 	}
 
-	images, readFilesErr := readFiles(files)
+	var images []os.File
+	for _, file := range files {
+		src, srcErr := file.Open()
+		if srcErr != nil {
+			return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
+				Ok:           false,
+				Error:        "invalid_image",
+				ErrorMessage: srcErr.Error(),
+			})
+		}
+		defer src.Close()
 
-	if readFilesErr != nil {
-		return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-			Ok:           false,
-			Error:        "invalid_image",
-			ErrorMessage: readFilesErr.Error(),
-		})
+		tempFile, tempErr := os.CreateTemp("", "image-*.png")
+		if tempErr != nil {
+			return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
+				Ok:           false,
+				Error:        "invalid_image",
+				ErrorMessage: tempErr.Error(),
+			})
+		}
+		defer tempFile.Close()
+
+		_, copyErr := io.Copy(tempFile, src)
+		if copyErr != nil {
+			return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
+				Ok:           false,
+				Error:        "invalid_image",
+				ErrorMessage: copyErr.Error(),
+			})
+		}
+
+		_, seekErr := tempFile.Seek(0, 0)
+		if seekErr != nil {
+			return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
+				Ok:           false,
+				Error:        "invalid_image",
+				ErrorMessage: seekErr.Error(),
+			})
+		}
+
+		images = append(images, *tempFile)
 	}
 
 	score, srcSkills, err := CalculateBuffScoreFromImageUsecase.CalculateBuffScoreFromImage(c.Request().Context(), images)
@@ -96,34 +128,4 @@ func calculateScore(c echo.Context) error {
 		Skills: skillResponse,
 	}
 	return c.JSON(http.StatusOK, response)
-}
-
-func readFiles(files []*multipart.FileHeader) ([]os.File, error) {
-	var images []os.File
-	for _, file := range files {
-		src, srcErr := file.Open()
-		if srcErr != nil {
-			return nil, srcErr
-		}
-		defer src.Close()
-
-		tempFile, tempErr := os.CreateTemp("", "image-*.png")
-		if tempErr != nil {
-			return nil, tempErr
-		}
-		defer tempFile.Close()
-
-		_, copyErr := io.Copy(tempFile, src)
-		if copyErr != nil {
-			return nil, copyErr
-		}
-
-		_, seekErr := tempFile.Seek(0, 0)
-		if seekErr != nil {
-			return nil, seekErr
-		}
-
-		images = append(images, *tempFile)
-	}
-	return images, nil
 }
