@@ -1,4 +1,4 @@
-package Imagetextextractor
+package ImageTextExtractor
 
 import (
 	"context"
@@ -12,11 +12,11 @@ import (
 func TestExtractTextFromImage(t *testing.T) {
 	ctx := context.Background()
 	dir, err := os.Getwd()
-	dir += "/../../../testdata/"
 	if err != nil {
 		t.Errorf("Error getting current directory: %v", err)
 		return
 	}
+	dir += "/../../../testdata/"
 	for _, testData := range Database.TestDataList {
 		log.Printf("【Testing job】 %s", testData.JobName)
 		for _, imageData := range testData.ImageDataList {
