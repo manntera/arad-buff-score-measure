@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo"
 	"manntera.com/calculate-score-api/pkg/Database"
-	CalculateBuffScoreFromImageUsecase "manntera.com/calculate-score-api/pkg/Usecase/CalculateBuffScoreFromImageUsecase"
+	"manntera.com/calculate-score-api/pkg/Usecase/CalculateBuffScoreFromImageUsecase"
 )
 
 func main() {
@@ -22,13 +22,10 @@ func main() {
 	e.Logger.Fatal(e.Start(":" + port))
 }
 
-type ParamResponse struct {
-	Id    int `json:"id"`
-	Value int `json:"value"`
-}
 type SkillResponse struct {
-	Name   string          `json:"name"`
-	Params []ParamResponse `json:"params"`
+	Name       string `json:"name"`
+	BaseParam  int    `json:"base_param"`
+	BoostParam int    `json:"boost_param"`
 }
 type CalculateScoreResponse struct {
 	Ok     bool            `json:"ok"`
@@ -72,18 +69,18 @@ func calculateScore(c echo.Context) error {
 	}
 
 	skillResponse := make([]SkillResponse, len(srcSkills))
-	for i, skill := range srcSkills {
-		paramResponse := make([]ParamResponse, len(skill.BuffParams))
-		for j, param := range skill.BuffParams {
-			paramResponse[j] = ParamResponse{
-				Id:    param.ParamId,
-				Value: int(param.ParamValue),
-			}
+	for i, srcSkill := range srcSkills {
+		skill, errGetSkill := Database.GetSkillFromId(srcSkill.SkillId)
+		if errGetSkill != nil {
+			return c.JSON(http.StatusInternalServerError, CalculateScoreResponse{
+				Ok:    false,
+				Error: "internal_error",
+			})
 		}
-		srcSkill := Database.GetSkillFromId(skill.SkillId)
 		skillResponse[i] = SkillResponse{
-			Name:   srcSkill.Name,
-			Params: paramResponse,
+			Name:       skill.Name,
+			BaseParam:  srcSkill.BaseParam,
+			BoostParam: srcSkill.BoostParam,
 		}
 	}
 	response := CalculateScoreResponse{
@@ -95,8 +92,8 @@ func calculateScore(c echo.Context) error {
 	return c.JSON(http.StatusOK, response)
 }
 
-func readFiles(files []*multipart.FileHeader) ([]*os.File, error) {
-	var images []*os.File
+func readFiles(files []*multipart.FileHeader) ([]os.File, error) {
+	var images []os.File
 	for _, file := range files {
 		src, srcErr := file.Open()
 		if srcErr != nil {
@@ -120,7 +117,7 @@ func readFiles(files []*multipart.FileHeader) ([]*os.File, error) {
 			return nil, seekErr
 		}
 
-		images = append(images, tempFile)
+		images = append(images, *tempFile)
 	}
 	return images, nil
 }
