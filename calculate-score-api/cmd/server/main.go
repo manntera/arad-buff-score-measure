@@ -28,26 +28,29 @@ type SkillResponse struct {
 	BoostParam int    `json:"boost_param"`
 }
 type CalculateScoreResponse struct {
-	Ok     bool            `json:"ok"`
-	Error  string          `json:"error"`
-	Score  int             `json:"score"`
-	Skills []SkillResponse `json:"skills"`
+	Ok           bool            `json:"ok"`
+	Error        string          `json:"error"`
+	ErrorMessage string          `json:"error_message"`
+	Score        int             `json:"score"`
+	Skills       []SkillResponse `json:"skills"`
 }
 
 func calculateScore(c echo.Context) error {
 	form, formErr := c.MultipartForm()
 	if formErr != nil {
 		return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-			Ok:    false,
-			Error: "invalid_form_data",
+			Ok:           false,
+			Error:        "invalid_form_data",
+			ErrorMessage: formErr.Error(),
 		})
 	}
 
 	files := form.File["images"]
 	if len(files) == 0 {
 		return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-			Ok:    false,
-			Error: "no_images",
+			Ok:           false,
+			Error:        "no_images",
+			ErrorMessage: "No images uploaded",
 		})
 	}
 
@@ -55,16 +58,18 @@ func calculateScore(c echo.Context) error {
 
 	if readFilesErr != nil {
 		return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-			Ok:    false,
-			Error: "invalid_image",
+			Ok:           false,
+			Error:        "invalid_image",
+			ErrorMessage: readFilesErr.Error(),
 		})
 	}
 
 	score, srcSkills, err := CalculateBuffScoreFromImageUsecase.CalculateBuffScoreFromImage(c.Request().Context(), images)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, CalculateScoreResponse{
-			Ok:    false,
-			Error: "internal_error",
+			Ok:           false,
+			Error:        "internal_error",
+			ErrorMessage: err.Error(),
 		})
 	}
 
@@ -73,8 +78,9 @@ func calculateScore(c echo.Context) error {
 		skill, errGetSkill := Database.GetSkillFromId(srcSkill.SkillId)
 		if errGetSkill != nil {
 			return c.JSON(http.StatusInternalServerError, CalculateScoreResponse{
-				Ok:    false,
-				Error: "internal_error",
+				Ok:           false,
+				Error:        "internal_error",
+				ErrorMessage: errGetSkill.Error(),
 			})
 		}
 		skillResponse[i] = SkillResponse{
