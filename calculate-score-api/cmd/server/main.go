@@ -2,6 +2,7 @@ package main
 
 import (
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 
@@ -26,6 +27,7 @@ type SkillResponse struct {
 	BaseParam  int    `json:"base_param"`
 	BoostParam int    `json:"boost_param"`
 }
+
 type CalculateScoreResponse struct {
 	Ok           bool            `json:"ok"`
 	Error        string          `json:"error"`
@@ -35,85 +37,89 @@ type CalculateScoreResponse struct {
 }
 
 func calculateScore(c echo.Context) error {
-	form, formErr := c.MultipartForm()
-	if formErr != nil {
-		return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-			Ok:           false,
-			Error:        "invalid_form_data",
-			ErrorMessage: formErr.Error(),
-		})
+	form, err := c.MultipartForm()
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, newErrorResponse("invalid_form_data", err.Error()))
 	}
 
 	files := form.File["images"]
 	if len(files) == 0 {
-		return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-			Ok:           false,
-			Error:        "no_images",
-			ErrorMessage: "No images uploaded",
-		})
+		return c.JSON(http.StatusBadRequest, newErrorResponse("no_images", "No images uploaded"))
 	}
 
+	images, err := openImages(files)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, newErrorResponse("invalid_image", err.Error()))
+	}
+	defer closeImages(images)
+
+	score, srcSkills, err := CalculateBuffScoreFromImageUsecase.CalculateBuffScoreFromImage(c.Request().Context(), images)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
+	}
+
+	skillResponse, err := buildSkillResponse(srcSkills)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
+	}
+
+	response := CalculateScoreResponse{
+		Ok:     true,
+		Score:  score,
+		Skills: skillResponse,
+	}
+	return c.JSON(http.StatusOK, response)
+}
+
+func newErrorResponse(errorCode, errorMessage string) CalculateScoreResponse {
+	return CalculateScoreResponse{
+		Ok:           false,
+		Error:        errorCode,
+		ErrorMessage: errorMessage,
+	}
+}
+
+func openImages(files []*multipart.FileHeader) ([]os.File, error) {
 	var images []os.File
 	for _, file := range files {
-		src, srcErr := file.Open()
-		if srcErr != nil {
-			return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-				Ok:           false,
-				Error:        "invalid_image",
-				ErrorMessage: srcErr.Error(),
-			})
+		src, err := file.Open()
+		if err != nil {
+			return nil, err
 		}
 		defer src.Close()
 
-		tempFile, tempErr := os.CreateTemp("", "image-*.png")
-		if tempErr != nil {
-			return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-				Ok:           false,
-				Error:        "invalid_image",
-				ErrorMessage: tempErr.Error(),
-			})
-		}
-		defer tempFile.Close()
-
-		_, copyErr := io.Copy(tempFile, src)
-		if copyErr != nil {
-			return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-				Ok:           false,
-				Error:        "invalid_image",
-				ErrorMessage: copyErr.Error(),
-			})
+		tempFile, err := os.CreateTemp("", "image-*.png")
+		if err != nil {
+			return nil, err
 		}
 
-		_, seekErr := tempFile.Seek(0, 0)
-		if seekErr != nil {
-			return c.JSON(http.StatusBadRequest, CalculateScoreResponse{
-				Ok:           false,
-				Error:        "invalid_image",
-				ErrorMessage: seekErr.Error(),
-			})
+		_, err = io.Copy(tempFile, src)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = tempFile.Seek(0, 0)
+		if err != nil {
+			return nil, err
 		}
 
 		images = append(images, *tempFile)
 	}
+	return images, nil
+}
 
-	score, srcSkills, err := CalculateBuffScoreFromImageUsecase.CalculateBuffScoreFromImage(c.Request().Context(), images)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, CalculateScoreResponse{
-			Ok:           false,
-			Error:        "internal_error",
-			ErrorMessage: err.Error(),
-		})
+func closeImages(images []os.File) {
+	for _, image := range images {
+		image.Close()
 	}
+}
 
+func buildSkillResponse(srcSkills []Database.BuffSkillParam) ([]SkillResponse, error) {
 	skillResponse := make([]SkillResponse, len(srcSkills))
 	for i, srcSkill := range srcSkills {
-		skill, errGetSkill := Database.GetSkillFromId(srcSkill.SkillId)
-		if errGetSkill != nil {
-			return c.JSON(http.StatusInternalServerError, CalculateScoreResponse{
-				Ok:           false,
-				Error:        "internal_error",
-				ErrorMessage: errGetSkill.Error(),
-			})
+		skill, err := Database.GetSkillFromId(srcSkill.SkillId)
+		if err != nil {
+			return nil, err
 		}
 		skillResponse[i] = SkillResponse{
 			Name:       skill.Name,
@@ -121,11 +127,5 @@ func calculateScore(c echo.Context) error {
 			BoostParam: srcSkill.BoostParam,
 		}
 	}
-	response := CalculateScoreResponse{
-		Ok:     true,
-		Error:  "",
-		Score:  score,
-		Skills: skillResponse,
-	}
-	return c.JSON(http.StatusOK, response)
+	return skillResponse, nil
 }
