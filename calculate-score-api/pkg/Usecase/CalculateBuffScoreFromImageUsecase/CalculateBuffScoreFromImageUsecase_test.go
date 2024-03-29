@@ -31,7 +31,7 @@ func TestCalculateBuffScoreFromImage(t *testing.T) {
 		defer file.Close()
 		files = append(files, *file)
 	}
-	score, err := CalculateBuffScoreFromImage(ctx, files)
+	score, _, err := CalculateBuffScoreFromImage(ctx, files)
 	if err != nil {
 		t.Errorf("Error: %v", err)
 	}
