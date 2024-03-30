@@ -29,8 +29,7 @@ type SkillResponse struct {
 }
 
 type CalculateScoreResponse struct {
-	Ok           bool            `json:"ok"`
-	Error        string          `json:"error"`
+	Result       string          `json:"result"`
 	ErrorMessage string          `json:"error_message"`
 	Score        int             `json:"score"`
 	Skills       []SkillResponse `json:"skills"`
@@ -64,7 +63,7 @@ func calculateScore(c echo.Context) error {
 	}
 
 	response := CalculateScoreResponse{
-		Ok:     true,
+		Result: "success",
 		Score:  score,
 		Skills: skillResponse,
 	}
@@ -73,8 +72,7 @@ func calculateScore(c echo.Context) error {
 
 func newErrorResponse(errorCode, errorMessage string) CalculateScoreResponse {
 	return CalculateScoreResponse{
-		Ok:           false,
-		Error:        errorCode,
+		Result:       errorCode,
 		ErrorMessage: errorMessage,
 	}
 }
