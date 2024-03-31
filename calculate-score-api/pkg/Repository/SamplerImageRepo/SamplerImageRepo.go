@@ -10,7 +10,7 @@ import (
 )
 
 type SamplerImageRepo struct {
-	SamplerImage *SamplerImage
+	samplerImage *SamplerImage
 }
 
 var _ IImageSamplerRepo = &SamplerImageRepo{}
@@ -19,39 +19,56 @@ func NewSamplerImageRepoFromFileHeader(fileHeader *multipart.FileHeader) (*Sampl
 	result := &SamplerImageRepo{}
 
 	SamplerImage := SamplerImage{
-		SrcFile:  nil,
-		SrcImage: nil,
+		srcFile:  nil,
+		srcImage: nil,
 	}
 
-	file, err := CreateFileFromFileHeader(fileHeader)
+	file, err := createFileFromFileHeader(fileHeader)
 	if err != nil {
 		return nil, err
 	}
 
-	image, err := GetImageFromFile(PNG, file)
+	image, err := getImageFromFile(PNG, file)
 	if err != nil {
 		return nil, err
 	}
 
-	SamplerImage.SrcImage = &image
-	SamplerImage.SrcFile = file
-	result.SamplerImage = &SamplerImage
+	SamplerImage.srcImage = &image
+	SamplerImage.srcFile = file
+	result.samplerImage = &SamplerImage
 
 	return result, nil
 }
 
 func (s *SamplerImageRepo) Close() error {
-	sampler := s.SamplerImage
+	sampler := s.samplerImage
 
-	if sampler.SrcFile != nil {
-		return sampler.SrcFile.Close()
+	if sampler.srcFile != nil {
+		return sampler.srcFile.Close()
 	}
-	sampler.SrcImage = nil
+	sampler.srcImage = nil
 
 	return nil
 }
 
-func CreateFileFromFileHeader(fileHeader *multipart.FileHeader) (*os.File, error) {
+func (s *SamplerImageRepo) GetFile() *os.File {
+	return s.samplerImage.srcFile
+}
+
+func (s *SamplerImageRepo) GetImage() *image.Image {
+	return s.samplerImage.srcImage
+}
+
+func (s *SamplerImageRepo) GetImageSize() *Size {
+	img := *s.GetImage()
+	bounds := img.Bounds()
+	return &Size{
+		Width:  bounds.Dx(),
+		Height: bounds.Dy(),
+	}
+}
+
+func createFileFromFileHeader(fileHeader *multipart.FileHeader) (*os.File, error) {
 	src, _ := fileHeader.Open()
 	defer src.Close()
 
@@ -68,7 +85,7 @@ func CreateFileFromFileHeader(fileHeader *multipart.FileHeader) (*os.File, error
 	return tempFile, nil
 }
 
-func GetImageFromFile(ImageType ImageType, imageFile *os.File) (image.Image, error) {
+func getImageFromFile(ImageType ImageType, imageFile *os.File) (image.Image, error) {
 	switch ImageType {
 	case PNG:
 		img, decodeErr := png.Decode(imageFile)

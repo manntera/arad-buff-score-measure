@@ -6,13 +6,16 @@ import (
 )
 
 type SamplerImage struct {
-	Width    int
-	Height   int
-	SrcFile  *os.File
-	SrcImage *image.Image
+	srcFile  *os.File
+	srcImage *image.Image
 }
 
 type ImageType int
+
+type Size struct {
+	Width  int
+	Height int
+}
 
 const (
 	PNG ImageType = iota
