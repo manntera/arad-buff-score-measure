@@ -24,7 +24,7 @@ func NewDetectedTextRepoFromVisionAnnotations(annotations []*visionpb.EntityAnno
 
 	annotationIndex := 0
 	for _, line := range lines {
-		if annotationIndex >= len(annotations) { // 追加: インデックスが範囲内か確認
+		if annotationIndex >= len(annotations) {
 			break
 		}
 		detectedText := &DetectedText{
@@ -44,7 +44,7 @@ func NewDetectedTextRepoFromVisionAnnotations(annotations []*visionpb.EntityAnno
 			if detectedText.text == line {
 				break
 			}
-			if annotationIndex >= len(annotations) { // インデックス範囲チェックを追加
+			if annotationIndex >= len(annotations) {
 				break
 			}
 			annotation := annotations[annotationIndex]
