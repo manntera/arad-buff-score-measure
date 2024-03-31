@@ -5,6 +5,7 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"mime/multipart"
 	"os"
 )
@@ -18,7 +19,7 @@ var _ IImageSamplerRepo = &SamplerImageRepo{}
 func NewSamplerImageRepoFromFileHeader(fileHeader *multipart.FileHeader) (*SamplerImageRepo, error) {
 	result := &SamplerImageRepo{}
 
-	SamplerImage := SamplerImage{
+	samplerImage := SamplerImage{
 		srcFile:  nil,
 		srcImage: nil,
 	}
@@ -30,28 +31,56 @@ func NewSamplerImageRepoFromFileHeader(fileHeader *multipart.FileHeader) (*Sampl
 
 	image, err := getImageFromFile(PNG, file)
 	if err != nil {
+		file.Close()
 		return nil, err
 	}
 
-	SamplerImage.srcImage = &image
-	SamplerImage.srcFile = file
-	result.samplerImage = &SamplerImage
+	samplerImage.srcImage = &image
+	samplerImage.srcFile = file
+	result.samplerImage = &samplerImage
+
+	return result, nil
+}
+
+func NewSamplerImageRepoFromFile(file *os.File) (*SamplerImageRepo, error) {
+	_, err := file.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, err
+	}
+	result := &SamplerImageRepo{}
+
+	samplerImage := SamplerImage{
+		srcFile:  nil,
+		srcImage: nil,
+	}
+
+	image, err := getImageFromFile(PNG, file)
+	if err != nil {
+		return nil, err
+	}
+
+	samplerImage.srcImage = &image
+	samplerImage.srcFile = file
+	result.samplerImage = &samplerImage
 
 	return result, nil
 }
 
 func (s *SamplerImageRepo) Close() error {
-	sampler := s.samplerImage
-
-	if sampler.srcFile != nil {
-		return sampler.srcFile.Close()
+	if s.samplerImage.srcFile != nil {
+		if err := s.samplerImage.srcFile.Close(); err != nil {
+			return err
+		}
+		s.samplerImage.srcFile = nil
 	}
-	sampler.srcImage = nil
-
+	s.samplerImage.srcImage = nil
 	return nil
 }
 
 func (s *SamplerImageRepo) GetFile() *os.File {
+	if s.samplerImage.srcFile != nil {
+		s.samplerImage.srcFile.Seek(0, io.SeekStart)
+	}
 	return s.samplerImage.srcFile
 }
 
@@ -69,7 +98,10 @@ func (s *SamplerImageRepo) GetImageSize() *Size {
 }
 
 func createFileFromFileHeader(fileHeader *multipart.FileHeader) (*os.File, error) {
-	src, _ := fileHeader.Open()
+	src, err := fileHeader.Open()
+	if err != nil {
+		return nil, err
+	}
 	defer src.Close()
 
 	tempFile, err := os.CreateTemp("", "image")
@@ -77,16 +109,25 @@ func createFileFromFileHeader(fileHeader *multipart.FileHeader) (*os.File, error
 		return nil, err
 	}
 
+	_, err = io.Copy(tempFile, src)
+	if err != nil {
+		tempFile.Close()
+		os.Remove(tempFile.Name())
+		return nil, err
+	}
+
 	_, err = tempFile.Seek(0, 0)
 	if err != nil {
+		tempFile.Close()
+		os.Remove(tempFile.Name())
 		return nil, err
 	}
 
 	return tempFile, nil
 }
 
-func getImageFromFile(ImageType ImageType, imageFile *os.File) (image.Image, error) {
-	switch ImageType {
+func getImageFromFile(imageType ImageType, imageFile *os.File) (image.Image, error) {
+	switch imageType {
 	case PNG:
 		img, decodeErr := png.Decode(imageFile)
 		if decodeErr != nil {
