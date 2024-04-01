@@ -1,0 +1,77 @@
+# イメージ関連の操作:
+## イメージ一覧を表示する:
+docker images
+
+## イメージをダウンロードする:
+docker pull <イメージ名>
+
+## イメージを削除する:
+docker image rm <イメージ名またはイメージID>
+
+## イメージをビルドする
+docker build -t my_image .
+
+## 未使用のイメージを一括で削除する:
+docker image prune
+
+# コンテナ関連の操作:
+## 起動中のコンテナ一覧を表示する:
+docker ps
+## 全てのコンテナ一覧を表示する:
+docker ps -a
+
+## コンテナを作成して起動する:
+docker run --name <コンテナ名> <イメージ名>
+
+## コンテナを停止する:
+docker stop <コンテナIDまたは名前>
+
+## コンテナを削除する:
+docker rm <コンテナIDまたは名前>
+
+## すべての停止中のコンテナを一括で削除する:
+docker rm $(docker ps -aq)
+
+## コンテナに入る:
+docker exec -it <コンテナIDまたは名前> bash
+
+## コンテナのログを見る
+docker logs <コンテナIDまたは名前>
+
+
+
+curl -X POST https://arad-buff-score-measure.manntera.com -F "images=@test_image/test1.png" -F "images=@test_image/test2.png" -F "images=@test_image/test3.png" -F "images=@test_image/test4.png" -F "images=@test_image/test5.png" -F "images=@test_image/test6.png"
+
+{
+    "ok": true,
+    "error": "",
+    "error_message": "",
+    "score": 1181373,
+    "skills": [
+        {
+            "name": "ステージ",
+            "base_param": 111539,
+            "boost_param": 0
+        },
+        {
+            "name": "アドレナリン",
+            "base_param": 4525,
+            "boost_param": 787
+        },
+        {
+            "name": "FINALE",
+            "base_param": 84009,
+            "boost_param": 0
+        },
+        {
+            "name": "ラブリーテンポ",
+            "base_param": 45259,
+            "boost_param": 7871
+        },
+        {
+            "name": "有名税",
+            "base_param": 599,
+            "boost_param": 0
+        }
+    ]
+}

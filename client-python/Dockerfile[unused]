@@ -1,0 +1,15 @@
+# Pythonの公式イメージをベースにする
+FROM python:3.9
+
+# 作業ディレクトリを/appに設定
+WORKDIR /app
+
+# ローカルのカレントディレクトリの内容をコンテナの/appにコピー
+COPY script.py .
+
+# 必要なライブラリをインストール
+RUN pip install pyautogui
+
+# Pythonスクリプトを実行する
+CMD ["python", "script.py"]
+#ENTRYPOINT ["python", "your_script.py"]
