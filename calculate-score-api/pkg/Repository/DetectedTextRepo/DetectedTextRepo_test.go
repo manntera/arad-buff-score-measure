@@ -42,7 +42,6 @@ func TestDetectedTextRepo(t *testing.T) {
 				continue
 			}
 			log.Printf("Detected text: %v", detectedTextRepo)
-			//detectedTextRepo.FindLineTextFromKeyword
 		}
 	}
 }

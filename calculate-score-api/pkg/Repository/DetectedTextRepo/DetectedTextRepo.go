@@ -46,21 +46,22 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 		if annotationIndex >= len(annotations) {
 			break
 		}
+		annotation := annotations[annotationIndex]
 		minPoint := image.Point{
-			X: int(annotations[annotationIndex].BoundingPoly.Vertices[0].X),
-			Y: int(annotations[annotationIndex].BoundingPoly.Vertices[0].Y),
+			X: int(annotation.BoundingPoly.Vertices[0].X),
+			Y: int(annotation.BoundingPoly.Vertices[0].Y),
 		}
 		maxPoint := image.Point{
-			X: int(annotations[annotationIndex].BoundingPoly.Vertices[2].X),
-			Y: int(annotations[annotationIndex].BoundingPoly.Vertices[2].Y),
+			X: int(annotation.BoundingPoly.Vertices[2].X),
+			Y: int(annotation.BoundingPoly.Vertices[2].Y),
 		}
 		detectedText := &DetectedText{
-			text: line,
-			rect: image.Rectangle{
+			Text: line,
+			Rect: image.Rectangle{
 				Min: minPoint,
 				Max: maxPoint,
 			},
-			normalizeRect: NormalizeRect.NormalizeRect{
+			NormalizeRect: NormalizeRect.NormalizeRect{
 				Min: NormalizeRect.NormalizedPoint{
 					X: float64(minPoint.X) / float64(srcImageRect.Width),
 					Y: float64(minPoint.Y) / float64(srcImageRect.Height),
@@ -72,18 +73,18 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 			},
 		}
 		for ; annotationIndex < len(annotations); annotationIndex++ {
-			if detectedText.text == line {
+			if detectedText.Text == line {
 				break
 			}
 			if annotationIndex >= len(annotations) {
 				break
 			}
 			annotation := annotations[annotationIndex]
-			detectedText.text += annotation.Description
-			detectedText.rect.Max.X = int(annotation.BoundingPoly.Vertices[2].X)
-			detectedText.rect.Max.Y = int(annotation.BoundingPoly.Vertices[2].Y)
-			detectedText.normalizeRect.Max.X = float64(detectedText.rect.Max.X) / float64(srcImageRect.Width)
-			detectedText.normalizeRect.Max.Y = float64(detectedText.rect.Max.Y) / float64(srcImageRect.Height)
+			detectedText.Text += annotation.Description
+			detectedText.Rect.Max.X = int(annotation.BoundingPoly.Vertices[2].X)
+			detectedText.Rect.Max.Y = int(annotation.BoundingPoly.Vertices[2].Y)
+			detectedText.NormalizeRect.Max.X = float64(detectedText.Rect.Max.X) / float64(srcImageRect.Width)
+			detectedText.NormalizeRect.Max.Y = float64(detectedText.Rect.Max.Y) / float64(srcImageRect.Height)
 		}
 		detectedTexts = append(detectedTexts, detectedText)
 	}
@@ -94,8 +95,8 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 func (repo *DetectedTextRepo) FindLineTextFromKeyword(keyword string, searchNormalizeRect NormalizeRect.NormalizeRect) ([]*DetectedText, error) {
 	result := make([]*DetectedText, 0)
 	for _, detectedText := range repo.detectedText {
-		if NormalizeRect.IsCollisionRect(detectedText.normalizeRect, searchNormalizeRect) {
-			if strings.Contains(detectedText.text, keyword) {
+		if NormalizeRect.IsCollisionRect(detectedText.NormalizeRect, searchNormalizeRect) {
+			if strings.Contains(detectedText.Text, keyword) {
 				result = append(result, detectedText)
 			}
 		}

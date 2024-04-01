@@ -7,7 +7,7 @@ import (
 )
 
 type DetectedText struct {
-	text          string
-	rect          image.Rectangle
-	normalizeRect NormalizeRect.NormalizeRect
+	Text          string
+	Rect          image.Rectangle
+	NormalizeRect NormalizeRect.NormalizeRect
 }
