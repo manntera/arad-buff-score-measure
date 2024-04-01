@@ -32,22 +32,26 @@ func NewBuffSkillRepoFromJsonFile(filePath string) (*BuffSkillRepo, error) {
 	return &result, nil
 }
 
-func (r *BuffSkillRepo) GetSkillFromID(id int) (*Skill, error) {
-	for _, skill := range r.Skills {
-		if skill.ID == id {
-			return &skill, nil
-		}
-	}
-
-	return nil, errors.New("Skill not found")
+func (r *BuffSkillRepo) GetSkillList() ([]Skill, error) {
+	return r.Skills, nil
 }
 
-func (r *BuffSkillRepo) GetSkillFromName(name string) (*Skill, error) {
+func (r *BuffSkillRepo) GetSkillFromID(id int) (Skill, error) {
 	for _, skill := range r.Skills {
-		if skill.Name == name {
-			return &skill, nil
+		if skill.ID == id {
+			return skill, nil
 		}
 	}
 
-	return nil, errors.New("Skill not found")
+	return Skill{}, errors.New("Skill not found")
+}
+
+func (r *BuffSkillRepo) GetSkillFromName(name string) (Skill, error) {
+	for _, skill := range r.Skills {
+		if skill.Name == name {
+			return skill, nil
+		}
+	}
+
+	return Skill{}, errors.New("Skill not found")
 }
