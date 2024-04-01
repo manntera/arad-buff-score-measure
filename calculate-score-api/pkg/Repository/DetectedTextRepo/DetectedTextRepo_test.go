@@ -60,7 +60,6 @@ func TestDetectedTextRepo(t *testing.T) {
 				t.Errorf("Error creating DetectedTextRepo: %v", err)
 				continue
 			}
-
 		}
 	}
 }

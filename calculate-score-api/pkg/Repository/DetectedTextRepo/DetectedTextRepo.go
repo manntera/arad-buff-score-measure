@@ -57,3 +57,13 @@ func NewDetectedTextRepoFromVisionAnnotations(annotations []*visionpb.EntityAnno
 	result.detectedText = detectedTexts
 	return result, nil
 }
+
+func (repo *DetectedTextRepo) FindLineTextFromKeyword(keyword string, searchRect image.Rectangle) ([]*DetectedText, error) {
+	result := make([]*DetectedText, 0)
+	for _, detectedText := range repo.detectedText {
+		if detectedText.rect.In(searchRect) && strings.Contains(detectedText.text, keyword) {
+			result = append(result, detectedText)
+		}
+	}
+	return result, nil
+}
