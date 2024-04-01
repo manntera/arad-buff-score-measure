@@ -12,7 +12,7 @@ import (
 )
 
 type DetectedTextRepo struct {
-	detectedText []*DetectedText
+	DetectedText []*DetectedText `json:"detectedText"`
 }
 
 var _ IDetectedTextRepo = &DetectedTextRepo{}
@@ -88,13 +88,13 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 		}
 		detectedTexts = append(detectedTexts, detectedText)
 	}
-	result.detectedText = detectedTexts
+	result.DetectedText = detectedTexts
 	return result, nil
 }
 
 func (repo *DetectedTextRepo) FindLineTextFromKeyword(keyword string, searchNormalizeRect NormalizeRect.NormalizeRect) ([]*DetectedText, error) {
 	result := make([]*DetectedText, 0)
-	for _, detectedText := range repo.detectedText {
+	for _, detectedText := range repo.DetectedText {
 		if NormalizeRect.IsCollisionRect(detectedText.NormalizeRect, searchNormalizeRect) {
 			if strings.Contains(detectedText.Text, keyword) {
 				result = append(result, detectedText)

@@ -2,6 +2,7 @@ package DetectedTextRepo
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"os"
 	"testing"
@@ -22,7 +23,8 @@ func TestDetectedTextRepo(t *testing.T) {
 		log.Printf("【Testing job】 %s", testData.JobName)
 		for _, imageData := range testData.ImageDataList {
 			log.Printf("【Testing image】 %s", imageData.ImageFileName)
-			testImagePath := dir + testData.JobName + "/" + imageData.ImageFileName
+			testDir := dir + testData.JobName + "/"
+			testImagePath := testDir + imageData.ImageFileName
 			file, err := os.Open(testImagePath)
 			if err != nil {
 				t.Errorf("Error opening test image: %v", err)
@@ -42,6 +44,20 @@ func TestDetectedTextRepo(t *testing.T) {
 				continue
 			}
 			log.Printf("Detected text: %v", detectedTextRepo)
+			json, err := json.MarshalIndent(detectedTextRepo, "", "  ")
+			if err != nil {
+				t.Errorf("Error marshalling DetectedTextRepo: %v", err)
+				continue
+			}
+			jsonFilePath := testDir + "detectedText/" + imageData.ImageFileName + ".json"
+			os.Mkdir(testDir+"detectedText/", 0777)
+			os.Create(jsonFilePath)
+
+			err = os.WriteFile(jsonFilePath, json, 0666)
+			if err != nil {
+				t.Errorf("Error writing json file: %v", err)
+				continue
+			}
 		}
 	}
 }

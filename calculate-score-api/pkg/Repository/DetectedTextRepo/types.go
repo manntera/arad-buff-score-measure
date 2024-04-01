@@ -7,7 +7,7 @@ import (
 )
 
 type DetectedText struct {
-	Text          string
-	Rect          image.Rectangle
-	NormalizeRect NormalizeRect.NormalizeRect
+	Text          string                      `json:"text"`
+	Rect          image.Rectangle             `json:"rect"`
+	NormalizeRect NormalizeRect.NormalizeRect `json:"normalizeRect"`
 }
