@@ -1,0 +1,1 @@
+SETTINGS = {'UI_SIZE': 'UI_HIGH', 'ROW_COUNT': '2'}
