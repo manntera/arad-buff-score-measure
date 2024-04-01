@@ -6,7 +6,6 @@ import (
 	"os"
 	"testing"
 
-	vision "cloud.google.com/go/vision/apiv1"
 	"manntera.com/calculate-score-api/pkg/Database"
 	"manntera.com/calculate-score-api/pkg/Repository/SamplerImageRepo"
 )
@@ -37,29 +36,13 @@ func TestDetectedTextRepo(t *testing.T) {
 			}
 			defer samplerImageRepo.Close()
 
-			image, imageErr := vision.NewImageFromReader(samplerImageRepo.GetFile())
-			if imageErr != nil {
-				t.Errorf("Error creating image from file: %v", imageErr)
-				continue
-			}
-			client, visionErr := vision.NewImageAnnotatorClient(ctx)
-			if visionErr != nil {
-				log.Println(visionErr.Error())
-				continue
-			}
-			defer client.Close()
-
-			annotations, annotateErr := client.DetectTexts(ctx, image, nil, 500)
-			if annotateErr != nil {
-				t.Errorf("Error detecting texts: %v", annotateErr)
-				continue
-			}
-
-			_, err = NewDetectedTextRepoFromVisionAnnotations(annotations)
+			detectedTextRepo, err := NewDetectedTextRepoFromSamplerImageRepo(ctx, samplerImageRepo)
 			if err != nil {
 				t.Errorf("Error creating DetectedTextRepo: %v", err)
 				continue
 			}
+			log.Printf("Detected text: %v", detectedTextRepo)
+			//detectedTextRepo.FindLineTextFromKeyword
 		}
 	}
 }
