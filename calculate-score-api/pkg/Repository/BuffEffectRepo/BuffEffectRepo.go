@@ -1,14 +1,77 @@
 package BuffEffectRepo
 
+import (
+	"fmt"
+	"strings"
+
+	"manntera.com/calculate-score-api/pkg/NormalizeRect"
+	"manntera.com/calculate-score-api/pkg/Repository/BuffSkillRepo"
+	"manntera.com/calculate-score-api/pkg/Repository/DetectedTextRepo"
+)
+
 type BuffEffectRepo struct {
 	buffEffects []*BuffEffect
 }
 
 var _ IBuffEffectRepo = &BuffEffectRepo{}
 
-func NewBuffEffectRepo(buffEffects []*BuffEffect) (*BuffEffectRepo, error) {
+func NewBuffEffectRepoFromDetectedTextRepo(buffSkillRepo BuffSkillRepo.IBuffSkillRepo, detectedTextRepo DetectedTextRepo.IDetectedTextRepo) (*BuffEffectRepo, error) {
 	result := BuffEffectRepo{}
-	result.buffEffects = buffEffects
+	skills, err := buffSkillRepo.GetSkillList()
+	if err != nil {
+		return nil, err
+	}
+	searchTargetRects := NormalizeRect.NormalizeRect{
+		Min: NormalizeRect.NormalizedPoint{X: 0.0, Y: 0.5},
+		Max: NormalizeRect.NormalizedPoint{X: 0.5, Y: 1.0},
+	}
+	var findSkill *DetectedTextRepo.DetectedText = nil
+	for _, skill := range skills {
+		detectedSkillTexts, err := detectedTextRepo.FindLineTextFromKeyword(skill.Name, searchTargetRects)
+		if err != nil {
+			continue
+		}
+		if len(detectedSkillTexts) == 0 {
+			continue
+		}
+		for _, detectedSkillText := range detectedSkillTexts {
+			if detectedSkillText.Rect.Min.Y > findSkill.Rect.Min.Y {
+				findSkill = detectedSkillText
+			}
+		}
+	}
+	if findSkill == nil {
+		return nil, fmt.Errorf("skill not found")
+	}
+	tempintBuffs, err := detectedTextRepo.FindLineTextFromKeyword("知能", searchTargetRects)
+	if err != nil {
+		return nil, err
+	}
+	IntBuffs := []*DetectedTextRepo.DetectedText{}
+	for _, intBuff := range tempintBuffs {
+		if !strings.Contains(intBuff.Text, "適用") {
+			IntBuffs = append(IntBuffs, intBuff)
+		}
+	}
+
+	tempPowBuffs, err := detectedTextRepo.FindLineTextFromKeyword("力", searchTargetRects)
+	if err != nil {
+		return nil, err
+	}
+	PowBuffs := []*DetectedTextRepo.DetectedText{}
+	for _, powBuff := range tempPowBuffs {
+		if !strings.Contains(powBuff.Text, "物理") &&
+			!strings.Contains(powBuff.Text, "魔法") &&
+			!strings.Contains(powBuff.Text, "攻撃") &&
+			!strings.Contains(powBuff.Text, "適用") &&
+			!strings.Contains(powBuff.Text, "独立") {
+			PowBuffs = append(PowBuffs, powBuff)
+		}
+	}
+
+	// IntBuffとPowBuffの中で一番信憑性が高いやつを採用する
+	// 次にBurstBuffを検出する
+
 	return &result, nil
 }
 
