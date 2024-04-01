@@ -1,17 +1,13 @@
 package DetectedTextRepo
 
-import "image"
+import (
+	"image"
+
+	"manntera.com/calculate-score-api/pkg/NormalizeRect"
+)
 
 type DetectedText struct {
 	text          string
 	rect          image.Rectangle
-	normalizeRect NormalizeRect
-}
-type NormalizeRect struct {
-	Min NormalizedPoint
-	Max NormalizedPoint
-}
-type NormalizedPoint struct {
-	X float64
-	Y float64
+	normalizeRect NormalizeRect.NormalizeRect
 }

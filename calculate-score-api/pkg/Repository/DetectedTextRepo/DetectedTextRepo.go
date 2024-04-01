@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	vision "cloud.google.com/go/vision/apiv1"
+	"manntera.com/calculate-score-api/pkg/NormalizeRect"
 	"manntera.com/calculate-score-api/pkg/Repository/SamplerImageRepo"
 )
 
@@ -59,12 +60,12 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 				Min: minPoint,
 				Max: maxPoint,
 			},
-			normalizeRect: NormalizeRect{
-				Min: NormalizedPoint{
+			normalizeRect: NormalizeRect.NormalizeRect{
+				Min: NormalizeRect.NormalizedPoint{
 					X: float64(minPoint.X) / float64(srcImageRect.Width),
 					Y: float64(minPoint.Y) / float64(srcImageRect.Height),
 				},
-				Max: NormalizedPoint{
+				Max: NormalizeRect.NormalizedPoint{
 					X: float64(maxPoint.X) / float64(srcImageRect.Width),
 					Y: float64(maxPoint.Y) / float64(srcImageRect.Height),
 				},
@@ -90,11 +91,13 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 	return result, nil
 }
 
-func (repo *DetectedTextRepo) FindLineTextFromKeyword(keyword string, searchRect image.Rectangle) ([]*DetectedText, error) {
+func (repo *DetectedTextRepo) FindLineTextFromKeyword(keyword string, searchNormalizeRect NormalizeRect.NormalizeRect) ([]*DetectedText, error) {
 	result := make([]*DetectedText, 0)
 	for _, detectedText := range repo.detectedText {
-		if detectedText.rect.In(searchRect) && strings.Contains(detectedText.text, keyword) {
-			result = append(result, detectedText)
+		if NormalizeRect.IsCollisionRect(detectedText.normalizeRect, searchNormalizeRect) {
+			if strings.Contains(detectedText.text, keyword) {
+				result = append(result, detectedText)
+			}
 		}
 	}
 	return result, nil
