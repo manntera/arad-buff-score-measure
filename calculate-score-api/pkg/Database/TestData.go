@@ -23,25 +23,25 @@ var TestDataList = []TestData{
 		JobName: "muse",
 		ImageDataList: []ImageData{
 			{
-				ImageFileName: "test1.jpg",
+				ImageFileName: "test1.png",
 				SkillId:       3, // 有名税
 				BaseParam:     599,
 				BoostParam:    0,
 			},
 			{
-				ImageFileName: "test2.jpg",
+				ImageFileName: "test2.png",
 				SkillId:       1, // ラブリーテンポ
 				BaseParam:     45259,
 				BoostParam:    7871,
 			},
 			{
-				ImageFileName: "test3.jpg",
+				ImageFileName: "test3.png",
 				SkillId:       5, // 特別な物語
 				BaseParam:     84009,
 				BoostParam:    0,
 			},
 			{
-				ImageFileName: "test4.jpg",
+				ImageFileName: "test4.png",
 				SkillId:       4, // アドレナリン
 				BaseParam:     4525,
 				BoostParam:    787,
@@ -53,7 +53,7 @@ var TestDataList = []TestData{
 				BoostParam:    0,
 			},
 		},
-		Score: 1181373,
+		Score: 1181374,
 	},
 	{
 		JobName: "encha",

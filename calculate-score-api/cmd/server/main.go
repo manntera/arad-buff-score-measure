@@ -1,14 +1,15 @@
 package main
 
 import (
-	"io"
-	"mime/multipart"
+	"log"
 	"net/http"
 	"os"
 
 	"github.com/labstack/echo"
-	"manntera.com/calculate-score-api/pkg/Database"
-	"manntera.com/calculate-score-api/pkg/Usecase/CalculateBuffScoreFromImageUsecase"
+	"manntera.com/calculate-score-api/pkg/Repository/BuffEffectRepo"
+	"manntera.com/calculate-score-api/pkg/Repository/BuffSkillRepo"
+	"manntera.com/calculate-score-api/pkg/Repository/DetectedTextRepo"
+	"manntera.com/calculate-score-api/pkg/Repository/SamplerImageRepo"
 )
 
 func main() {
@@ -41,24 +42,51 @@ func calculateScore(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, newErrorResponse("invalid_form_data", err.Error()))
 	}
 
-	files := form.File["images"]
-	if len(files) == 0 {
+	filesHeaders := form.File["images"]
+	if len(filesHeaders) == 0 {
 		return c.JSON(http.StatusBadRequest, newErrorResponse("no_images", "No images uploaded"))
 	}
-
-	images, err := openImages(files)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, newErrorResponse("invalid_image", err.Error()))
-	}
-	defer closeImages(images)
-
-	score, srcSkills, err := CalculateBuffScoreFromImageUsecase.CalculateBuffScoreFromImage(c.Request().Context(), images)
+	buffSkillJson, err := os.Getwd()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
 	}
+	buffSkillJson += "/setting/BuffSkill.json"
 
-	skillResponse, err := buildSkillResponse(srcSkills)
+	buffSkillRepo, err := BuffSkillRepo.NewBuffSkillRepoFromJsonFile(buffSkillJson)
 	if err != nil {
+		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
+	}
+	buffEffectRepos := make([]*BuffEffectRepo.BuffEffectRepo, 0)
+	for _, fileHeader := range filesHeaders {
+		samplerImageRepo, err := SamplerImageRepo.NewSamplerImageRepoFromFileHeader(fileHeader)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, newErrorResponse("invalid_image", err.Error()))
+		}
+		defer samplerImageRepo.Close()
+		detectedTextRepo, err := DetectedTextRepo.NewDetectedTextRepoFromSamplerImageRepo(c.Request().Context(), samplerImageRepo)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, newErrorResponse("invalid_image", err.Error()))
+		}
+		buffEffectRepo, err := BuffEffectRepo.NewBuffEffectRepoFromDetectedTextRepo(buffSkillRepo, detectedTextRepo)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, newErrorResponse("invalid_image", err.Error()))
+		}
+		buffEffectRepos = append(buffEffectRepos, buffEffectRepo)
+	}
+
+	var baseParam float32 = 0
+	var boostParam float32 = 0
+	for _, buffEffectRepo := range buffEffectRepos {
+		baseParam += float32(buffEffectRepo.BuffEffect.BaseParam)
+		boostParam += float32(buffEffectRepo.BuffEffect.BoostParam)
+	}
+	baseParam = (baseParam+15000.0)/250.0 + 1.0
+	boostParam = (boostParam + 2650.0) / 10.0
+	score := int(baseParam * boostParam)
+
+	skillResponse, err := buildSkillResponse(buffEffectRepos, buffSkillRepo)
+	if err != nil {
+		log.Printf("Error building skill response: %v", err)
 		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
 	}
 
@@ -77,53 +105,18 @@ func newErrorResponse(errorCode, errorMessage string) CalculateScoreResponse {
 	}
 }
 
-func openImages(files []*multipart.FileHeader) ([]os.File, error) {
-	var images []os.File
-	for _, file := range files {
-		src, err := file.Open()
+func buildSkillResponse(buffEffectRepos []*BuffEffectRepo.BuffEffectRepo, buffSkillRepo *BuffSkillRepo.BuffSkillRepo) ([]SkillResponse, error) {
+	var result []SkillResponse
+	for _, buffEffectRepo := range buffEffectRepos {
+		skill, err := buffSkillRepo.GetSkillFromID(buffEffectRepo.BuffEffect.SkillId)
 		if err != nil {
 			return nil, err
 		}
-		defer src.Close()
-
-		tempFile, err := os.CreateTemp("", "image-*.png")
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = io.Copy(tempFile, src)
-		if err != nil {
-			return nil, err
-		}
-
-		_, err = tempFile.Seek(0, 0)
-		if err != nil {
-			return nil, err
-		}
-
-		images = append(images, *tempFile)
-	}
-	return images, nil
-}
-
-func closeImages(images []os.File) {
-	for _, image := range images {
-		image.Close()
-	}
-}
-
-func buildSkillResponse(srcSkills []Database.BuffSkillParam) ([]SkillResponse, error) {
-	skillResponse := make([]SkillResponse, len(srcSkills))
-	for i, srcSkill := range srcSkills {
-		skill, err := Database.GetSkillFromId(srcSkill.SkillId)
-		if err != nil {
-			return nil, err
-		}
-		skillResponse[i] = SkillResponse{
+		result = append(result, SkillResponse{
 			Name:       skill.Name,
-			BaseParam:  srcSkill.BaseParam,
-			BoostParam: srcSkill.BoostParam,
-		}
+			BaseParam:  buffEffectRepo.BuffEffect.BaseParam,
+			BoostParam: buffEffectRepo.BuffEffect.BoostParam,
+		})
 	}
-	return skillResponse, nil
+	return result, nil
 }
