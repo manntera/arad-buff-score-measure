@@ -25,6 +25,7 @@ func TestBuffEffectRepo(t *testing.T) {
 	}
 	for _, testData := range Database.TestDataList {
 		log.Printf("【Testing job】 %s", testData.JobName)
+		buffEffectRepos := make([]*BuffEffectRepo, 0)
 		for _, imageData := range testData.ImageDataList {
 			log.Printf("【Testing image】 %s", imageData.ImageFileName)
 			testDir := testdataDir + testData.JobName + "/"
@@ -51,7 +52,21 @@ func TestBuffEffectRepo(t *testing.T) {
 			if buffEffectRepo.buffEffects.BoostParam != imageData.BoostParam {
 				t.Errorf("BoostParam not match: %v", buffEffectRepo.buffEffects.BoostParam)
 			}
-			t.Logf("BaseParam: %v, BoostParam: %v", buffEffectRepo.buffEffects.BaseParam, buffEffectRepo.buffEffects.BoostParam)
+			buffEffectRepos = append(buffEffectRepos, buffEffectRepo)
+		}
+		var baseParam float32 = 0
+		var boostParam float32 = 0
+		for _, buffEffectRepo := range buffEffectRepos {
+			baseParam += float32(buffEffectRepo.buffEffects.BaseParam)
+			boostParam += float32(buffEffectRepo.buffEffects.BoostParam)
+		}
+		baseParam = (baseParam+15000.0)/250.0 + 1.0
+		boostParam = (boostParam + 2650.0) / 10.0
+		score := int(baseParam * boostParam)
+		if score != testData.Score {
+			t.Errorf("Score not match got: %v, want: %v", score, testData.Score)
+		} else {
+			log.Printf("Score match got: %v, want: %v", score, testData.Score)
 		}
 	}
 }
