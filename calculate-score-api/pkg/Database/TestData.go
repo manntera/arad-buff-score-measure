@@ -53,7 +53,7 @@ var TestDataList = []TestData{
 				BoostParam:    0,
 			},
 		},
-		Score: 1181373,
+		Score: 1181374,
 	},
 	{
 		JobName: "encha",
