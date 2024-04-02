@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"image"
+	"log"
 	"strings"
 
 	vision "cloud.google.com/go/vision/apiv1"
@@ -41,8 +42,11 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 	lines := strings.Split(annotations[0].Description, "\n")
 
 	srcImageRect := samplerImageRepo.GetImageSize()
-	annotationIndex := 0
+	annotationIndex := 1
 	for _, line := range lines {
+		line = strings.ReplaceAll(line, " ", "")
+		line = strings.ReplaceAll(line, "　", "")
+		log.Printf("【LINE】 %s", line)
 		if annotationIndex >= len(annotations) {
 			break
 		}
@@ -55,8 +59,8 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 			X: int(annotation.BoundingPoly.Vertices[2].X),
 			Y: int(annotation.BoundingPoly.Vertices[2].Y),
 		}
-		detectedText := &DetectedText{
-			Text: line,
+		detectedText := DetectedText{
+			Text: "",
 			Rect: image.Rectangle{
 				Min: minPoint,
 				Max: maxPoint,
@@ -72,21 +76,23 @@ func NewDetectedTextRepoFromSamplerImageRepo(ctx context.Context, samplerImageRe
 				},
 			},
 		}
-		for ; annotationIndex < len(annotations); annotationIndex++ {
+		for annotationIndex < len(annotations) {
 			if detectedText.Text == line {
 				break
 			}
 			if annotationIndex >= len(annotations) {
 				break
 			}
+			log.Printf("  -【ANNO】 %s", annotations[annotationIndex].Description)
 			annotation := annotations[annotationIndex]
 			detectedText.Text += annotation.Description
 			detectedText.Rect.Max.X = int(annotation.BoundingPoly.Vertices[2].X)
 			detectedText.Rect.Max.Y = int(annotation.BoundingPoly.Vertices[2].Y)
 			detectedText.NormalizeRect.Max.X = float64(detectedText.Rect.Max.X) / float64(srcImageRect.Width)
 			detectedText.NormalizeRect.Max.Y = float64(detectedText.Rect.Max.Y) / float64(srcImageRect.Height)
+			annotationIndex++
 		}
-		detectedTexts = append(detectedTexts, detectedText)
+		detectedTexts = append(detectedTexts, &detectedText)
 	}
 	result.DetectedText = detectedTexts
 	return result, nil
