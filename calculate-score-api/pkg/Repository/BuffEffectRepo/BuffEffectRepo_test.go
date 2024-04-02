@@ -46,19 +46,19 @@ func TestBuffEffectRepo(t *testing.T) {
 				t.Errorf("Error creating BuffEffectRepo: %v", err)
 				continue
 			}
-			if buffEffectRepo.buffEffects.BaseParam != imageData.BaseParam {
-				t.Errorf("BaseParam not match: %v", buffEffectRepo.buffEffects.BaseParam)
+			if buffEffectRepo.BuffEffect.BaseParam != imageData.BaseParam {
+				t.Errorf("BaseParam not match: %v", buffEffectRepo.BuffEffect.BaseParam)
 			}
-			if buffEffectRepo.buffEffects.BoostParam != imageData.BoostParam {
-				t.Errorf("BoostParam not match: %v", buffEffectRepo.buffEffects.BoostParam)
+			if buffEffectRepo.BuffEffect.BoostParam != imageData.BoostParam {
+				t.Errorf("BoostParam not match: %v", buffEffectRepo.BuffEffect.BoostParam)
 			}
 			buffEffectRepos = append(buffEffectRepos, buffEffectRepo)
 		}
 		var baseParam float32 = 0
 		var boostParam float32 = 0
 		for _, buffEffectRepo := range buffEffectRepos {
-			baseParam += float32(buffEffectRepo.buffEffects.BaseParam)
-			boostParam += float32(buffEffectRepo.buffEffects.BoostParam)
+			baseParam += float32(buffEffectRepo.BuffEffect.BaseParam)
+			boostParam += float32(buffEffectRepo.BuffEffect.BoostParam)
 		}
 		baseParam = (baseParam+15000.0)/250.0 + 1.0
 		boostParam = (boostParam + 2650.0) / 10.0

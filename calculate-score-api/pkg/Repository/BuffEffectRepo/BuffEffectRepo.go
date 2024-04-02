@@ -12,7 +12,7 @@ import (
 )
 
 type BuffEffectRepo struct {
-	buffEffects *BuffEffect
+	BuffEffect *BuffEffect
 }
 
 var _ IBuffEffectRepo = &BuffEffectRepo{}
@@ -26,7 +26,7 @@ const (
 
 func NewBuffEffectRepoFromDetectedTextRepo(buffSkillRepo BuffSkillRepo.IBuffSkillRepo, detectedTextRepo DetectedTextRepo.IDetectedTextRepo) (*BuffEffectRepo, error) {
 	result := BuffEffectRepo{
-		buffEffects: &BuffEffect{},
+		BuffEffect: &BuffEffect{},
 	}
 
 	skillName, err := findSkillName(buffSkillRepo, detectedTextRepo)
@@ -38,17 +38,17 @@ func NewBuffEffectRepoFromDetectedTextRepo(buffSkillRepo BuffSkillRepo.IBuffSkil
 	if err != nil {
 		return nil, err
 	}
-	result.buffEffects.SkillId = skill.ID
+	result.BuffEffect.SkillId = skill.ID
 
 	if skill.IsBasePower {
-		result.buffEffects.BaseParam, err = findParam(detectedTextRepo, []string{"知能", "力"}, []string{"物理", "魔法", "攻撃", "適用", "独立"})
+		result.BuffEffect.BaseParam, err = findParam(detectedTextRepo, []string{"知能", "力"}, []string{"物理", "魔法", "攻撃", "適用", "独立"})
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if skill.IsBoostPower {
-		result.buffEffects.BoostParam, err = findParam(detectedTextRepo, []string{"魔法", "物理", "独立"}, []string{"適用"})
+		result.BuffEffect.BoostParam, err = findParam(detectedTextRepo, []string{"魔法", "物理", "独立"}, []string{"適用"})
 		if err != nil {
 			return nil, err
 		}
