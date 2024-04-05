@@ -33,6 +33,7 @@ type CalculateScoreResponse struct {
 	Result       string          `json:"result"`
 	ErrorMessage string          `json:"error_message"`
 	Score        int             `json:"score"`
+	HenaiScore   int             `json:"henai_score"`
 	Skills       []SkillResponse `json:"skills"`
 }
 
@@ -76,13 +77,29 @@ func calculateScore(c echo.Context) error {
 
 	var baseParam float32 = 0
 	var boostParam float32 = 0
+	var henaiBaseScore float32 = 0
+	var henaiBoostScore float32 = 0
 	for _, buffEffectRepo := range buffEffectRepos {
 		baseParam += float32(buffEffectRepo.BuffEffect.BaseParam)
 		boostParam += float32(buffEffectRepo.BuffEffect.BoostParam)
+
+		// 偏愛スキルのスコア計算
+		if buffEffectRepo.BuffEffect.SkillId == 6 {
+			henaiBaseScore += (float32(buffEffectRepo.BuffEffect.BaseParam) * 1.15)
+			henaiBoostScore += (float32(buffEffectRepo.BuffEffect.BoostParam) * 1.15)
+		} else {
+			henaiBaseScore += float32(buffEffectRepo.BuffEffect.BaseParam)
+			henaiBoostScore += float32(buffEffectRepo.BuffEffect.BoostParam)
+		}
 	}
+
 	baseParam = (baseParam+15000.0)/250.0 + 1.0
 	boostParam = (boostParam + 2650.0) / 10.0
 	score := int(baseParam * boostParam)
+
+	henaiBaseScore = (henaiBaseScore+15000.0)/250.0 + 1.0
+	henaiBoostScore = (henaiBoostScore + 2650.0) / 10.0
+	henaiScore := int(henaiBaseScore * henaiBoostScore)
 
 	skillResponse, err := buildSkillResponse(buffEffectRepos, buffSkillRepo)
 	if err != nil {
@@ -91,9 +108,10 @@ func calculateScore(c echo.Context) error {
 	}
 
 	response := CalculateScoreResponse{
-		Result: "success",
-		Score:  score,
-		Skills: skillResponse,
+		Result:     "success",
+		Score:      score,
+		HenaiScore: henaiScore,
+		Skills:     skillResponse,
 	}
 	return c.JSON(http.StatusOK, response)
 }
