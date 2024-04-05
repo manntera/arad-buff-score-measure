@@ -15,6 +15,7 @@ type TestData struct {
 	JobName       string      // 職業名
 	ImageDataList []ImageData // テスト使用する画像リスト
 	Score         int         // 期待されるスコア
+	HentaiScore   int         // 期待される偏愛スコア
 }
 
 // テストデータ
@@ -53,7 +54,8 @@ var TestDataList = []TestData{
 				BoostParam:    0,
 			},
 		},
-		Score: 1181374,
+		Score:       1181374,
+		HentaiScore: 1181374,
 	},
 	{
 		JobName: "encha",
@@ -89,7 +91,8 @@ var TestDataList = []TestData{
 				BoostParam:    0,
 			},
 		},
-		Score: 274212,
+		Score:       274212,
+		HentaiScore: 303206,
 	},
 	{
 		JobName: "mkuruse",
@@ -125,7 +128,8 @@ var TestDataList = []TestData{
 				BoostParam:    0,
 			},
 		},
-		Score: 745080,
+		Score:       745080,
+		HentaiScore: 745080,
 	},
 	{
 		JobName: "wkuruse",
@@ -167,7 +171,8 @@ var TestDataList = []TestData{
 				BoostParam:    0,
 			},
 		},
-		Score: 491916,
+		Score:       491916,
+		HentaiScore: 491916,
 	},
 }
 

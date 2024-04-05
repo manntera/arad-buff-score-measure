@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo"
 	"manntera.com/calculate-score-api/pkg/Repository/BuffEffectRepo"
+	"manntera.com/calculate-score-api/pkg/Repository/BuffScoreRepo"
 	"manntera.com/calculate-score-api/pkg/Repository/BuffSkillRepo"
 	"manntera.com/calculate-score-api/pkg/Repository/DetectedTextRepo"
 	"manntera.com/calculate-score-api/pkg/Repository/SamplerImageRepo"
@@ -33,6 +34,7 @@ type CalculateScoreResponse struct {
 	Result       string          `json:"result"`
 	ErrorMessage string          `json:"error_message"`
 	Score        int             `json:"score"`
+	HenaiScore   int             `json:"henai_score"`
 	Skills       []SkillResponse `json:"skills"`
 }
 
@@ -74,15 +76,10 @@ func calculateScore(c echo.Context) error {
 		buffEffectRepos = append(buffEffectRepos, buffEffectRepo)
 	}
 
-	var baseParam float32 = 0
-	var boostParam float32 = 0
-	for _, buffEffectRepo := range buffEffectRepos {
-		baseParam += float32(buffEffectRepo.BuffEffect.BaseParam)
-		boostParam += float32(buffEffectRepo.BuffEffect.BoostParam)
+	buffScoreRepo, err := BuffScoreRepo.NewBuffScoreRepo(buffEffectRepos, buffSkillRepo)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
 	}
-	baseParam = (baseParam+15000.0)/250.0 + 1.0
-	boostParam = (boostParam + 2650.0) / 10.0
-	score := int(baseParam * boostParam)
 
 	skillResponse, err := buildSkillResponse(buffEffectRepos, buffSkillRepo)
 	if err != nil {
@@ -91,9 +88,10 @@ func calculateScore(c echo.Context) error {
 	}
 
 	response := CalculateScoreResponse{
-		Result: "success",
-		Score:  score,
-		Skills: skillResponse,
+		Result:     "success",
+		Score:      buffScoreRepo.BuffScore.Score,
+		HenaiScore: buffScoreRepo.BuffScore.HentaiScore,
+		Skills:     skillResponse,
 	}
 	return c.JSON(http.StatusOK, response)
 }
