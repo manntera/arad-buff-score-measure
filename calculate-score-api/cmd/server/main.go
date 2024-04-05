@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo"
 	"manntera.com/calculate-score-api/pkg/Repository/BuffEffectRepo"
+	"manntera.com/calculate-score-api/pkg/Repository/BuffScoreRepo"
 	"manntera.com/calculate-score-api/pkg/Repository/BuffSkillRepo"
 	"manntera.com/calculate-score-api/pkg/Repository/DetectedTextRepo"
 	"manntera.com/calculate-score-api/pkg/Repository/SamplerImageRepo"
@@ -75,31 +76,10 @@ func calculateScore(c echo.Context) error {
 		buffEffectRepos = append(buffEffectRepos, buffEffectRepo)
 	}
 
-	var baseParam float32 = 0
-	var boostParam float32 = 0
-	var henaiBaseScore float32 = 0
-	var henaiBoostScore float32 = 0
-	for _, buffEffectRepo := range buffEffectRepos {
-		baseParam += float32(buffEffectRepo.BuffEffect.BaseParam)
-		boostParam += float32(buffEffectRepo.BuffEffect.BoostParam)
-
-		// 偏愛スキルのスコア計算
-		if buffEffectRepo.BuffEffect.SkillId == 6 {
-			henaiBaseScore += (float32(buffEffectRepo.BuffEffect.BaseParam) * 1.15)
-			henaiBoostScore += (float32(buffEffectRepo.BuffEffect.BoostParam) * 1.15)
-		} else {
-			henaiBaseScore += float32(buffEffectRepo.BuffEffect.BaseParam)
-			henaiBoostScore += float32(buffEffectRepo.BuffEffect.BoostParam)
-		}
+	buffScoreRepo, err := BuffScoreRepo.NewBuffScoreRepo(buffEffectRepos, buffSkillRepo)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
 	}
-
-	baseParam = (baseParam+15000.0)/250.0 + 1.0
-	boostParam = (boostParam + 2650.0) / 10.0
-	score := int(baseParam * boostParam)
-
-	henaiBaseScore = (henaiBaseScore+15000.0)/250.0 + 1.0
-	henaiBoostScore = (henaiBoostScore + 2650.0) / 10.0
-	henaiScore := int(henaiBaseScore * henaiBoostScore)
 
 	skillResponse, err := buildSkillResponse(buffEffectRepos, buffSkillRepo)
 	if err != nil {
@@ -109,8 +89,8 @@ func calculateScore(c echo.Context) error {
 
 	response := CalculateScoreResponse{
 		Result:     "success",
-		Score:      score,
-		HenaiScore: henaiScore,
+		Score:      buffScoreRepo.BuffScore.Score,
+		HenaiScore: buffScoreRepo.BuffScore.HentaiScore,
 		Skills:     skillResponse,
 	}
 	return c.JSON(http.StatusOK, response)
