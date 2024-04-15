@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/labstack/echo"
 	"manntera.com/calculate-score-api/pkg/Repository/BuffEffectRepo"
@@ -48,13 +49,14 @@ func calculateScore(c echo.Context) error {
 	if len(filesHeaders) == 0 {
 		return c.JSON(http.StatusBadRequest, newErrorResponse("no_images", "No images uploaded"))
 	}
-	// buffSkillJson, err := os.Getwd()
-	// if err != nil {
-	// 	return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
-	// }
-	buffSkillJson := "app/setting/BuffSkill.json"
+	exePath, err := os.Executable()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
+	}
+	exePath = filepath.Dir(exePath)
+	settingFilePath := exePath + "/setting/BuffSkill.json"
 
-	buffSkillRepo, err := BuffSkillRepo.NewBuffSkillRepoFromJsonFile(buffSkillJson)
+	buffSkillRepo, err := BuffSkillRepo.NewBuffSkillRepoFromJsonFile(settingFilePath)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
 	}
