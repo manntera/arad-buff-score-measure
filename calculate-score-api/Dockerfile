@@ -10,5 +10,6 @@ RUN go build ./cmd/server/main.go
 # runtime image
 FROM alpine
 COPY --from=builder /go/src /app
+COPY --from=builder /go/src/setting /app/setting
 
 CMD /app/main $PORT

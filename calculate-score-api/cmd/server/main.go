@@ -48,11 +48,11 @@ func calculateScore(c echo.Context) error {
 	if len(filesHeaders) == 0 {
 		return c.JSON(http.StatusBadRequest, newErrorResponse("no_images", "No images uploaded"))
 	}
-	buffSkillJson, err := os.Getwd()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
-	}
-	buffSkillJson += "/setting/BuffSkill.json"
+	// buffSkillJson, err := os.Getwd()
+	// if err != nil {
+	// 	return c.JSON(http.StatusInternalServerError, newErrorResponse("internal_error", err.Error()))
+	// }
+	buffSkillJson := "app/setting/BuffSkill.json"
 
 	buffSkillRepo, err := BuffSkillRepo.NewBuffSkillRepoFromJsonFile(buffSkillJson)
 	if err != nil {
