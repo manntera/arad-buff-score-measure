@@ -75,3 +75,7 @@ curl -X POST https://arad-buff-score-measure.manntera.com -F "images=@test_image
         }
     ]
 }
+
+gcloud auth activate-service-account --key-file=calculate-score-api-credential.json
+for /f "delims=" %i in ('gcloud auth print-identity-token') do set "TOKEN=%i"
+curl -X POST -H "Authorization: Bearer %TOKEN%" -F "images=@test_image/test1.png" -F "images=@test_image/test2.png" -F "images=@test_image/test3.png" -F "images=@test_image/test4.png" -F "images=@test_image/test5.png" https://arad-buff-score-measure.manntera.com/calculate-score
